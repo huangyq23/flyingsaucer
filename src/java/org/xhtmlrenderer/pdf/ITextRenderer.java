@@ -234,7 +234,7 @@ public class ITextRenderer {
         
         _outputDevice.start(_doc);
         _outputDevice.setWriter(writer);
-        _outputDevice.initializePage(writer.getDirectContent(), firstPageSize.height());
+        _outputDevice.initializePage(writer.getDirectContent(), firstPageSize.getHeight());
         
         _root.getLayer().assignPagePaintingPositions(c, Layer.PAGED_MODE_PRINT);
         
@@ -254,7 +254,7 @@ public class ITextRenderer {
                 doc.setPageSize(nextPageSize);
                 doc.newPage();
                 _outputDevice.initializePage(
-                        writer.getDirectContent(), nextPageSize.height());
+                        writer.getDirectContent(), nextPageSize.getHeight());
             }
         }
         
