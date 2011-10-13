@@ -21,10 +21,24 @@ package org.xhtmlrenderer.css.parser;
 
 import java.awt.Color;
 
+import com.lowagie.text.pdf.CMYKColor;
+
+/**
+ * Container for color information.
+ *
+ * Can contain either RGB or CMYK color, and if it is CMYK, then itext is required.
+ */
 public class FSRGBColor {
+    private boolean isRgb = true;
+
     private int _red;
     private int _green;
     private int _blue;
+
+    private int _cyan;
+    private int _magenta;
+    private int _yellow;
+    private int _black;
     
     public FSRGBColor(int red, int green, int blue) {
         if (red < 0 || red > 255) {
@@ -41,20 +55,35 @@ public class FSRGBColor {
         _blue = blue;
     }
 
-    public int getBlue() {
-        return _blue;
+    /**
+     * Create a CMYK color with the exact values from the CSS, which are
+     * integer percentages from 0-100.
+     */
+    public FSRGBColor(int cyan, int magenta, int yellow, int black) {
+        if (cyan < 0 || cyan > 100) {
+            throw new IllegalArgumentException();
+        }
+        if (magenta < 0 || magenta > 100) {
+            throw new IllegalArgumentException();
+        }
+        if (yellow < 0 || yellow > 100) {
+            throw new IllegalArgumentException();
+        }
+        if (black < 0 || black > 100) {
+            throw new IllegalArgumentException();
+        }
+        isRgb = false;
+        _cyan = cyan;
+        _magenta = magenta;
+        _yellow = yellow;
+        _black = black;
     }
 
-    public int getGreen() {
-        return _green;
-    }
-
-    public int getRed() {
-        return _red;
-    }
-    
     public String toString() {
-        return '#' + toString(_red) + toString(_green) + toString(_blue);
+        if (isRgb) {
+            return '#' + toString(_red) + toString(_green) + toString(_blue);
+        }
+        return "cmyk(" + _cyan + "," + _magenta + "," + _yellow + "," + _black + ")";
     }
     
     private String toString(int color) {
@@ -67,6 +96,19 @@ public class FSRGBColor {
     }
     
     public Color toAWTColor() {
-        return new Color(_red, _green, _blue);
+        if (isRgb) {
+            return new Color(_red, _green, _blue);
+        }
+        return new CMYKColor(normalize(_cyan),
+                normalize(_magenta),
+                normalize(_yellow),
+                normalize(_black));
+    }
+
+    /**
+     * Normalizes an int percentage (0-100) to a float (0.0-1.0)
+     */
+    private float normalize(int percent) {
+        return (percent / 100.0f);
     }
 }

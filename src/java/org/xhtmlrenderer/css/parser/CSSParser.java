@@ -1275,7 +1275,9 @@ public class CSSParser {
             }
             
             if (f.equals("rgb(")) {
-                result = new PropertyValue(createColorFromFunction(params));
+                result = new PropertyValue(createRgbColorFromFunction(params));
+            } else if (f.equals("cmyk(")) {
+                result = new PropertyValue(createCmykColorFromFunction(params));
             } else {
                 result = new PropertyValue(new FSFunction(
                         f.substring(0, f.length()-1), params));
@@ -1290,7 +1292,7 @@ public class CSSParser {
         return result;
     }
     
-    private FSRGBColor createColorFromFunction(List params) {
+    private FSRGBColor createRgbColorFromFunction(List params) {
         if (params.size() != 3) {
             throw new CSSParseException(
                     "The rgb() function must have exactly three parameters",
@@ -1334,6 +1336,52 @@ public class CSSParser {
         }
         
         return new FSRGBColor(red, green, blue);
+    }
+
+    private FSRGBColor createCmykColorFromFunction(List params) {
+        if (params.size() != 4) {
+            throw new CSSParseException(
+                    "The cmyk() function must have exactly four parameters",
+                    getCurrentLine());
+        }
+
+        int cyan = 0;
+        int magenta = 0;
+        int yellow = 0;
+        int black = 0;
+        for (int i = 0; i < params.size(); i++) {
+            PropertyValue value = (PropertyValue)params.get(i);
+            short type = value.getPrimitiveType();
+            if (type != CSSPrimitiveValue.CSS_NUMBER) {
+                throw new CSSParseException(
+                        "Parameter " + (i+1) + " to the cmyk() funciton is " +
+                        "not a number", getCurrentLine());
+            }
+
+            float f = value.getFloatValue();
+            if (f < 0) {
+                f = 0;
+            } else if (f > 100) {
+                f = 100;
+            }
+
+            switch (i) {
+                case 0:
+                    cyan = (int)f;
+                    break;
+                case 1:
+                    magenta = (int)f;
+                    break;
+                case 2:
+                    yellow = (int)f;
+                    break;
+                case 3:
+                    black = (int)f;
+                    break;
+            }
+        }
+
+        return new FSRGBColor(cyan, magenta, yellow, black);
     }
     
 //  /*

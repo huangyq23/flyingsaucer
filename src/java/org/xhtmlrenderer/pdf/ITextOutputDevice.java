@@ -62,6 +62,7 @@ import org.xhtmlrenderer.util.XRRuntimeException;
 
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Image;
+import com.lowagie.text.pdf.CMYKColor;
 import com.lowagie.text.pdf.PdfAction;
 import com.lowagie.text.pdf.PdfAnnotation;
 import com.lowagie.text.pdf.PdfBorderDictionary;
@@ -93,7 +94,7 @@ public class ITextOutputDevice extends AbstractOutputDevice implements OutputDev
     
     private AffineTransform _transform = new AffineTransform();
     
-    private Color _color = Color.BLACK;
+    private Color _color = new CMYKColor(0f, 0f, 0f, 1f); // Color.BLACK;
     
     private Color _fillColor;
     private Color _strokeColor;
