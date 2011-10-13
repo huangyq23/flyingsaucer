@@ -21,7 +21,7 @@ And then use version r7final-local in your pom.xml like so:
   <dependency>
     <groupId>net.java.xhtmlrenderer</groupId>
     <artifactId>flyingsaucer</artifactId>
-    <version>r7final-local</version>                                            
+    <version>r7final-local</version>
   </dependency>
 
 When you are ready to release a new version of this branch of FlyingSaucer,
