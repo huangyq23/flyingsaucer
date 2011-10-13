@@ -44,3 +44,7 @@ You can deploy this version after building it with the following Maven command:
            -Dpackaging=jar \
            -Dfile=build/core-renderer.jar \
            -Dversion=r7final-itext-2.1.0-compatible-2
+
+Be sure to tag your release in git using that version, so we can find it again:
+
+  shell> git tag -am "Adds support for CMYK in CSS for PDFs" r7final-itext-2.1.0-compatible-2
