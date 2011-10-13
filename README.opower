@@ -1,0 +1,46 @@
+The Opower version of FlyingSaucer is based on itext-2.1.0.
+
+We have a specific version of itext that is included in the lib directory.
+This branch of FlyingSaucer is compiled against that version.
+
+To build a new version,
+
+  shell> ant clean jar
+
+To install the file locally for testing
+
+  shell> mvn install:install-file \
+           -DgroupId=net.java.xhtmlrenderer \
+           -DartifactId=flyingsaucer \
+           -Dpackaging=jar \
+           -Dfile=build/core-renderer.jar \
+           -Dversion=r7final-local
+
+And then use version r7final-local in your pom.xml like so:
+
+  <dependency>
+    <groupId>net.java.xhtmlrenderer</groupId>
+    <artifactId>flyingsaucer</artifactId>
+    <version>r7final-local</version>                                            
+  </dependency>
+
+When you are ready to release a new version of this branch of FlyingSaucer,
+update the version so that it is distinctive from the prior version.  The
+current production version, which has been in use since 2007, is
+
+  r7final-itext-2.1.0-compatible
+
+The next version should start following a new convention
+
+  r7final-itext-2.1.0-compatible-2
+
+You can deploy this version after building it with the following Maven command:
+
+  shell> mvn deploy:deploy-file \
+           -Durl=scp://mvn.opower.com/opt/mvn_repo \
+           -DrepositoryId=secure_opower \
+           -DgroupId=net.java.xhtmlrenderer \
+           -DartifactId=flyingsaucer \
+           -Dpackaging=jar \
+           -Dfile=build/core-renderer.jar \
+           -Dversion=r7final-itext-2.1.0-compatible-2
