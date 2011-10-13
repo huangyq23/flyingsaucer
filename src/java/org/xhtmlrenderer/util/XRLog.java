@@ -1,7 +1,6 @@
 /*
  * {{{ header & license
- * Copyright (c) 2004, 2005, 2008 Joshua Marinacci, Patrick Wright
- * Copyright (c) 2008 Patrick Wright
+ * Copyright (c) 2004, 2005 Joshua Marinacci
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -20,9 +19,12 @@
  */
 package org.xhtmlrenderer.util;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.*;
+import java.util.Iterator;
+import java.util.Properties;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 
 /**
@@ -33,189 +35,416 @@ import java.util.logging.Level;
  * @author empty
  */
 public class XRLog {
-    private static final List LOGGER_NAMES = new ArrayList(20);
-    public final static String CONFIG = registerLoggerByName("org.xhtmlrenderer.config");
-    public final static String EXCEPTION = registerLoggerByName("org.xhtmlrenderer.exception");
-    public final static String GENERAL = registerLoggerByName("org.xhtmlrenderer.general");
-    public final static String INIT = registerLoggerByName("org.xhtmlrenderer.init");
-    public final static String JUNIT = registerLoggerByName("org.xhtmlrenderer.junit");
-    public final static String LOAD = registerLoggerByName("org.xhtmlrenderer.load");
-    public final static String MATCH = registerLoggerByName("org.xhtmlrenderer.match");
-    public final static String CASCADE = registerLoggerByName("org.xhtmlrenderer.cascade");
-    public final static String XML_ENTITIES = registerLoggerByName("org.xhtmlrenderer.load.xml-entities");
-    public final static String CSS_PARSE = registerLoggerByName("org.xhtmlrenderer.css-parse");
-    public final static String LAYOUT = registerLoggerByName("org.xhtmlrenderer.layout");
-    public final static String RENDER = registerLoggerByName("org.xhtmlrenderer.render");
 
-    private static String registerLoggerByName(final String loggerName) {
-        LOGGER_NAMES.add(loggerName);
-        return loggerName;
-    }
+    /**
+     * Description of the Field
+     */
+    private final static String CONFIG = "plumbing.config";
+    /**
+     * Description of the Field
+     */
+    private final static String EXCEPTION = "plumbing.exception";
+    /**
+     * Description of the Field
+     */
+    private final static String GENERAL = "plumbing.general";
+    /**
+     * Description of the Field
+     */
+    private final static String INIT = "plumbing.init";
+    /**
+     * Description of the Field
+     */
+    private final static String JUNIT = "plumbing.junit";
+    /**
+     * Description of the Field
+     */
+    private final static String LOAD = "plumbing.load";
+    /**
+     * Description of the Field
+     */
+    private final static String MATCH = "plumbing.match";
+    /**
+     * Description of the Field
+     */
+    private final static String CASCADE = "plumbing.cascade";
+    /**
+     * Description of the Field
+     */
+    private final static String XML_ENTITIES = "plumbing.load.xml-entities";
+    /**
+     * Description of the Field
+     */
+    private final static String CSS_PARSE = "plumbing.css-parse";
+    /**
+     * Description of the Field
+     */
+    private final static String LAYOUT = "plumbing.layout";
+    /**
+     * Description of the Field
+     */
+    private final static String RENDER = "plumbing.render";
 
+    /**
+     * Description of the Field
+     */
     private static boolean initPending = true;
-    private static XRLogger loggerImpl;
 
     private static boolean loggingEnabled = true;
 
     /**
-     * Returns a list of all loggers that will be accessed by XRLog. Each entry is a String with a logger
-     * name, which can be used to retrieve the logger using the corresponding Logging API; example name might be
-     * "org.xhtmlrenderer.config"
+     * Description of the Method
      *
-     * @return List of loggers, never null.
+     * @param msg PARAM
      */
-    public static List listRegisteredLoggers() {
-        // defensive copy
-        return new ArrayList(LOGGER_NAMES);
-    }
-
-
     public static void cssParse(String msg) {
         cssParse(Level.INFO, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     */
     public static void cssParse(Level level, String msg) {
         log(CSS_PARSE, level, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     * @param th    PARAM
+     */
     public static void cssParse(Level level, String msg, Throwable th) {
         log(CSS_PARSE, level, msg, th);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param msg PARAM
+     */
     public static void xmlEntities(String msg) {
         xmlEntities(Level.INFO, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     */
     public static void xmlEntities(Level level, String msg) {
         log(XML_ENTITIES, level, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     * @param th    PARAM
+     */
     public static void xmlEntities(Level level, String msg, Throwable th) {
         log(XML_ENTITIES, level, msg, th);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param msg PARAM
+     */
     public static void cascade(String msg) {
         cascade(Level.INFO, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     */
     public static void cascade(Level level, String msg) {
         log(CASCADE, level, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     * @param th    PARAM
+     */
     public static void cascade(Level level, String msg, Throwable th) {
         log(CASCADE, level, msg, th);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param msg PARAM
+     */
     public static void exception(String msg) {
         exception(msg, null);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param msg PARAM
+     * @param th  PARAM
+     */
     public static void exception(String msg, Throwable th) {
         log(EXCEPTION, Level.WARNING, msg, th);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param msg PARAM
+     */
     public static void general(String msg) {
         general(Level.INFO, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     */
     public static void general(Level level, String msg) {
         log(GENERAL, level, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     * @param th    PARAM
+     */
     public static void general(Level level, String msg, Throwable th) {
         log(GENERAL, level, msg, th);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param msg PARAM
+     */
     public static void init(String msg) {
         init(Level.INFO, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     */
     public static void init(Level level, String msg) {
         log(INIT, level, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     * @param th    PARAM
+     */
     public static void init(Level level, String msg, Throwable th) {
         log(INIT, level, msg, th);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param msg PARAM
+     */
     public static void junit(String msg) {
         junit(Level.FINEST, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     */
     public static void junit(Level level, String msg) {
         log(JUNIT, level, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     * @param th    PARAM
+     */
     public static void junit(Level level, String msg, Throwable th) {
         log(JUNIT, level, msg, th);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param msg PARAM
+     */
     public static void load(String msg) {
         load(Level.INFO, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     */
     public static void load(Level level, String msg) {
         log(LOAD, level, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     * @param th    PARAM
+     */
     public static void load(Level level, String msg, Throwable th) {
         log(LOAD, level, msg, th);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param msg PARAM
+     */
     public static void match(String msg) {
         match(Level.INFO, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     */
     public static void match(Level level, String msg) {
         log(MATCH, level, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     * @param th    PARAM
+     */
     public static void match(Level level, String msg, Throwable th) {
         log(MATCH, level, msg, th);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param msg PARAM
+     */
     public static void layout(String msg) {
         layout(Level.INFO, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     */
     public static void layout(Level level, String msg) {
         log(LAYOUT, level, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     * @param th    PARAM
+     */
     public static void layout(Level level, String msg, Throwable th) {
         log(LAYOUT, level, msg, th);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param msg PARAM
+     */
     public static void render(String msg) {
         render(Level.INFO, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     */
     public static void render(Level level, String msg) {
         log(RENDER, level, msg);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param level PARAM
+     * @param msg   PARAM
+     * @param th    PARAM
+     */
     public static void render(Level level, String msg, Throwable th) {
         log(RENDER, level, msg, th);
     }
 
-    public static synchronized void log(String where, Level level, String msg) {
+    /**
+     * Description of the Method
+     *
+     * @param where PARAM
+     * @param level PARAM
+     * @param msg   PARAM
+     */
+    public static void log(String where, Level level, String msg) {
         if (initPending) {
             init();
         }
-        if (isLoggingEnabled()) {
-            loggerImpl.log(where, level, msg);
-        }
+        if ( isLoggingEnabled()) getLogger(where).log(level, msg);
     }
 
-    public static synchronized void log(String where, Level level, String msg, Throwable th) {
+    /**
+     * Description of the Method
+     *
+     * @param where PARAM
+     * @param level PARAM
+     * @param msg   PARAM
+     * @param th    PARAM
+     */
+    public static void log(String where, Level level, String msg, Throwable th) {
         if (initPending) {
             init();
         }
-        if (isLoggingEnabled()) {
-            loggerImpl.log(where, level, msg, th);
-        }
+        getLogger(where).log(level, msg, th);
     }
 
+    /**
+     * Description of the Method
+     *
+     * @param args PARAM
+     */
     public static void main(String args[]) {
         try {
             XRLog.cascade("Cascade msg");
@@ -239,28 +468,80 @@ public class XRLog {
         }
     }
 
+    /**
+     * Description of the Method
+     */
     private static void init() {
         synchronized (XRLog.class) {
             if (!initPending) {
                 return;
             }
-
-            XRLog.setLoggingEnabled(Configuration.isTrue("xr.util-logging.loggingEnabled", true));
-
-            if (loggerImpl == null) {
-                loggerImpl = new JDKXRLogger();
-            }
-
+            //now change this immediately, in case something fails
             initPending = false;
+            try {
+                // pull logging properties from configuration
+                // they are all prefixed as shown
+                String prefix = "xr.util-logging.";
+                Iterator iter = Configuration.keysByPrefix(prefix);
+                Properties props = new Properties();
+                while (iter.hasNext()) {
+                    String fullkey = (String) iter.next();
+                    String lmkey = fullkey.substring(prefix.length());
+                    String value = Configuration.valueFor(fullkey);
+                    props.setProperty(lmkey, value);
+
+                    if ( lmkey.equals("loggingEnabled")) {
+                        setLoggingEnabled(Configuration.isTrue(fullkey, true));
+                    }
+                }
+                
+                if(!isLoggingEnabled()) {
+                    System.out.println("logging isn't enabled");
+                    Configuration.setConfigLogger(Logger.getLogger(CONFIG));
+                    return;
+                }
+
+                // load our properties into our log manager
+                // log manager can only read properties from an InputStream
+                File f = File.createTempFile("xr-log", null);
+                FileOutputStream fos = new FileOutputStream(f);
+                props.store(fos, "# Temporary properties file");
+                fos.close();
+
+                FileInputStream fis = new FileInputStream(f);
+                LogManager.getLogManager().readConfiguration(fis);
+                fis.close();
+                f.delete();
+
+                Configuration.setConfigLogger(Logger.getLogger(CONFIG));
+            } catch (SecurityException e) {
+                //throw new XRRuntimeException("Could not initialize logs. " + e.getLocalizedMessage());
+            } catch (FileNotFoundException e) {
+                throw new XRRuntimeException("Could not initialize logs. " + e.getLocalizedMessage(), e);
+            } catch (IOException e) {
+                throw new XRRuntimeException("Could not initialize logs. " + e.getLocalizedMessage(), e);
+            }
         }
     }
 
-    public static synchronized void setLevel(String log, Level level) {
-        if (initPending) {
-            init();
-        }
-        loggerImpl.setLevel(log, level);
+    /**
+     * Same purpose as Logger.getLogger(), except that the static initialization
+     * for XRLog will initialize the LogManager with logging levels and other
+     * configuration. Use this instead of Logger.getLogger()
+     *
+     * @param log PARAM
+     * @return The logger value
+     */
+    private static Logger getLogger(String log) {
+        return Logger.getLogger(log);
     }
+
+    public static void setLevel(String log, Level level) {
+        getLogger(log).setLevel(level);
+    }
+
+    static {
+    }// end main()
 
     /**
      * Whether logging is on or off.
@@ -268,7 +549,7 @@ public class XRLog {
      * to configuration file property xr.util-logging.loggingEnabled, or to
      * value passed to setLoggingEnabled(bool).
      */
-    public static synchronized boolean isLoggingEnabled() {
+    public static boolean isLoggingEnabled() {
         return loggingEnabled;
     }
 
@@ -279,35 +560,15 @@ public class XRLog {
      * if false, all logging calls fail silently. Corresponds
      * to configuration file property xr.util-logging.loggingEnabled
      */
-    public static synchronized void setLoggingEnabled(boolean loggingEnabled) {
+    public static void setLoggingEnabled(boolean loggingEnabled) {
         XRLog.loggingEnabled = loggingEnabled;
-    }
-
-    public static synchronized XRLogger getLoggerImpl() {
-        return loggerImpl;
-    }
-
-    public static synchronized void setLoggerImpl(XRLogger loggerImpl) {
-        XRLog.loggerImpl = loggerImpl;
     }
 }// end class
 
 /*
- * $Id$
+ * $Id: XRLog.java,v 1.17 2007-06-02 20:00:34 peterbrant Exp $
  *
- * $Log$
- * Revision 1.20  2010/01/13 01:28:46  peterbrant
- * Add synchronization to XRLog#log to avoid spurious errors on initializatoin
- *
- * Revision 1.19  2008/01/27 16:40:29  pdoubleya
- * Issues 186 and 130: fix configuration so that logging setup does not override any current settings for JDK logging classes. Disable logging by default.
- *
- * Revision 1.18  2007/09/10 20:28:26  peterbrant
- * Make underlying logging implementation pluggable / Add log4j logging implementation (not currently compiled with Ant to avoid additional compile time dependency)
- *
- * Revision 1.17  2007/06/02 20:00:34  peterbrant
- * Revert earlier change to default CSS parse logging level / Use WARNING explicitly for CSS parse errors
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.16  2007/06/01 21:44:08  peterbrant
  * CSS parsing errors should be logged at WARNING, not INFO level
  *

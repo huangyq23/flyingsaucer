@@ -1,7 +1,4 @@
 <project name="build.jars">
-    <import file="properties.xml" />
-    <import file="compile.xml" />
-
     <!-- Compiles main codebase, and builds jar for it -->
     <target name="jar.core" depends="compile" description="build core jar">
         <jar jarfile="${dest.dir}/core-renderer.jar" compress="true" index="true">
@@ -9,7 +6,6 @@
                 <include name="**/*.class"/>
                 <exclude name="org/joshy/html/app"/>
                 <exclude name="**/demo/**"/>
-                <exclude name="**/test/**"/>
             </fileset>
             <fileset dir="${dest.dir}">
                 <include name="resources/**"/>
@@ -18,7 +14,10 @@
                 <include name="resources/**"/>
             </fileset>
         </jar>
+		
+		
 	</target>
+
 
     <!-- builds minmal version of core jar, excluding entity files -->
     <target name="jar.core-minimal" depends="compile" description="build core jar">
@@ -27,9 +26,10 @@
                 <include name="**/*.class"/>
                 <exclude name="org/joshy/html/app"/>
                 <exclude name="**/demo/**"/>
-                <exclude name="**/test/**"/>
             </fileset>
         </jar>
+
+
 	</target>
 
     <!-- Compiles browser and main codebase, and builds jar for browser -->
@@ -47,11 +47,10 @@
             <fileset dir="${src.browser.icons.dir}">
               <include name="images/**" />
             </fileset>
-            <fileset dir="${guide}">
-                <include name="users-guide-r8.html"/>
+            <fileset dir="${www.dir}">
+                <include name="r7/users-guide-r7.html"/>
                 <include name="images/**/*"/>
                 <include name="base.css"/>
-                <include name="ug.css"/>
             </fileset>
         </jar>
     </target>
@@ -87,7 +86,7 @@
 
     <!-- Compiles about box and main codebase, and builds jar for about box -->
     <target name="jar.about" depends="compile.about" description="build about jar">
-        <jar jarfile="${dest.dir}/aboutbox.jar" compress="true"
+        <jar jarfile="${dest.dir}/about.jar" compress="true"
             manifest="${src.packaging.dir}/manifest"
             duplicate="preserve"
             index="true"
@@ -97,6 +96,32 @@
             </fileset>
             <zipfileset refid="xhtml.about.demos"/>
             <zipfileset refid="xhtml.splash"/>
+        </jar>
+    </target>
+
+    <!-- Compiles photogallery and main codebase, and builds jar for photogallery -->
+    <target name="jar.photogallery" depends="compile.photogallery" description="build photogallery jar">
+        <jar jarfile="${dest.dir}/photogallery.jar" compress="true"
+            manifest="${src.packaging.dir}/manifest"
+            duplicate="preserve"
+            index="true"
+            >
+            <fileset dir="${dest.java.dir}">
+                <include name="org/xhtmlrenderer/demo/photogallery/**"/>
+            </fileset>
+        </jar>
+    </target>
+
+    <!-- Compiles photogallery and main codebase, and builds jar for photogallery -->
+    <target name="jar.filebrowser" depends="compile.filebrowser" description="build filebrowser jar">
+        <jar jarfile="${dest.dir}/filebrowser.jar" compress="true"
+            manifest="${src.packaging.dir}/manifest"
+            duplicate="preserve"
+            index="true"
+            >
+            <fileset dir="${dest.java.dir}">
+                <include name="org/xhtmlrenderer/demo/filebrowser/**"/>
+            </fileset>
         </jar>
     </target>
 </project>

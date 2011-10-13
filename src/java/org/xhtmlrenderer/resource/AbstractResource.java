@@ -67,12 +67,9 @@ public abstract class AbstractResource implements Resource {
 }
 
 /*
- * $Id$
+ * $Id: AbstractResource.java,v 1.4 2005-06-15 10:56:14 tobega Exp $
  *
- * $Log$
- * Revision 1.4  2005/06/15 10:56:14  tobega
- * cleaned up a bit of URL mess, centralizing URI-resolution and loading to UserAgentCallback
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.3  2005/06/01 21:36:40  tobega
  * Got image scaling working, and did some refactoring along the way
  *

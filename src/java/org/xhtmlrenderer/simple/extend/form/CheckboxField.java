@@ -24,13 +24,11 @@ import javax.swing.JComponent;
 import javax.swing.JToggleButton;
 
 import org.w3c.dom.Element;
-import org.xhtmlrenderer.layout.LayoutContext;
-import org.xhtmlrenderer.render.BlockBox;
 import org.xhtmlrenderer.simple.extend.XhtmlForm;
 
 class CheckboxField extends InputField {
-    public CheckboxField(Element e, XhtmlForm form, LayoutContext context, BlockBox box) {
-        super(e, form, context, box);
+    public CheckboxField(Element e, XhtmlForm form) {
+        super(e, form);
     }
 
     public JComponent create() {
@@ -44,7 +42,7 @@ class CheckboxField extends InputField {
     
     protected FormFieldState loadOriginalState() {
         return FormFieldState.fromBoolean(
-                getAttribute("checked").equalsIgnoreCase("checked"));
+                getAttribute("checked").equals("checked"));
     }
     
     protected void applyOriginalState() {
@@ -58,7 +56,7 @@ class CheckboxField extends InputField {
         
         if (button.isSelected()) {
             return new String [] {
-                    hasAttribute("value") ? getAttribute("value") : "on"
+                    hasAttribute("value") ? getAttribute("value") : "" 
             };
         } else {
             return new String[] {};

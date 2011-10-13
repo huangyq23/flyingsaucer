@@ -73,9 +73,7 @@ public class Uu extends Util {
         utilAsString.setPrintWriter(pw);
         utilAsString.print(object);// our log adds a newline
         pw.flush();
-        if (XRLog.isLoggingEnabled()) {
-            XRLog.general(sw.getBuffer().toString());
-        }
+        XRLog.general(sw.getBuffer().toString());
     }
 
     /**
@@ -90,9 +88,7 @@ public class Uu extends Util {
         utilAsString.setPrintWriter(pw);
         utilAsString.print(object);// our log adds a newline
         pw.flush();
-        if (XRLog.isLoggingEnabled()) {
-            XRLog.general(sw.getBuffer().toString());
-        }
+        XRLog.general(sw.getBuffer().toString());
         //util.print( object );
     }
 
@@ -139,27 +135,9 @@ public class Uu extends Util {
 }
 
 /*
- * $Id$
+ * $Id: Uu.java,v 1.3 2005-09-29 06:15:07 tobega Exp $
  *
- * $Log$
- * Revision 1.4  2009/04/25 11:57:05  pdoubleya
- * Small opt, avoid log calls where logging is disabled, patch from Peter Fassev issue #263
- *
- * Revision 1.3  2005/09/29 06:15:07  tobega
- * Patch from Peter Brant:
- * List of changes:
- *  - Fix extents height calculation
- *  - Small refactoring to Boxing to combine a method
- *  - Make render and layout threads interruptible and add
- * RootPanel.shutdown() method to shut them down in an orderly manner
- *  - Fix NPE in Graphics2DRenderer.  It looks like
- * BasicPanel.intrinsic_size will always be null anyway?
- *  - Fix NPE in RootPanel when enclosingScrollPane is null.
- *  - Both RenderLoop.collapseRepaintEvents and
- * LayoutLoop.collapseLayoutEvents will go into an infinite loop if the
- * next event isn't collapsible.  I added a common implementation to
- * RenderQueue which doesn't have this problem.
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.2  2005/01/29 20:18:38  pdoubleya
  * Clean/reformat code. Removed commented blocks, checked copyright.
  *

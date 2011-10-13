@@ -88,9 +88,6 @@ Z             = z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?|\\z
 "-->"			{return Token.TK_CDC;}
 "~="			{return Token.TK_INCLUDES;}
 "|="			{return Token.TK_DASHMATCH;}
-"^="            {return Token.TK_PREFIXMATCH;}
-"$="            {return Token.TK_SUFFIXMATCH;}
-"*="            {return Token.TK_SUBSTRINGMATCH;}
 
 {w}"{"			{return Token.TK_LBRACE;}
 {w}"+"			{return Token.TK_PLUS;}
@@ -108,9 +105,6 @@ Z             = z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?|\\z
 "@page"			{return Token.TK_PAGE_SYM;}
 "@media"		{return Token.TK_MEDIA_SYM;}
 "@charset "		{return Token.TK_CHARSET_SYM;}
-"@namespace"	{return Token.TK_NAMESPACE_SYM;}
-"@font-face"    {return Token.TK_FONT_FACE_SYM;}
-"@"{ident}      {return Token.TK_AT_RULE;}
 
 "!"({w}|{comment})*"important"	{return Token.TK_IMPORTANT_SYM;}
 
@@ -149,7 +143,6 @@ Z             = z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?|\\z
 "."				{return Token.TK_PERIOD;}
 "="				{return Token.TK_EQUALS;}
 "*"				{return Token.TK_ASTERISK;}
-"|"				{return Token.TK_VERTICAL_BAR;}
 
 <<EOF>>			{return Token.TK_EOF;}
 

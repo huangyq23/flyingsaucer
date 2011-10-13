@@ -20,25 +20,13 @@
  */
 package org.xhtmlrenderer.extend;
 
-import java.awt.Rectangle;
-
 import org.xhtmlrenderer.render.FSFont;
 import org.xhtmlrenderer.render.FSFontMetrics;
-import org.xhtmlrenderer.render.JustificationInfo;
 
 public interface TextRenderer {
     public void setup(FontContext context);
 
     public void drawString(OutputDevice outputDevice, String string, float x, float y);
-    public void drawString(
-            OutputDevice outputDevice, String string, float x, float y, JustificationInfo info);
-    
-    public void drawGlyphVector(OutputDevice outputDevice, FSGlyphVector vector, float x, float y);
-    
-    public FSGlyphVector getGlyphVector(OutputDevice outputDevice, FSFont font, String string);
-    
-    public float[] getGlyphPositions(OutputDevice outputDevice, FSFont font, FSGlyphVector fsGlyphVector);
-    public Rectangle getGlyphBounds(OutputDevice outputDevice, FSFont font, FSGlyphVector fsGlyphVector, int index, float x, float y);
 
     public FSFontMetrics getFSFontMetrics(
             FontContext context, FSFont font, String string );
@@ -61,11 +49,11 @@ public interface TextRenderer {
 
     public int getSmoothingLevel();
 
-    /**
-     * @deprecated no-op, will be removed in a future release. Anti-aliasing is now controlled via the smoothing
-     * threshhold.
-     * @param level no-op
-     */
     public void setSmoothingLevel(int level);
+
+    public static final int NONE = 0;
+    public static final int LOW = 1;
+    public static final int MEDIUM = 2;
+    public static final int HIGH = 3;
 }
 

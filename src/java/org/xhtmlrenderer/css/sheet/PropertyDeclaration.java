@@ -232,12 +232,9 @@ public class PropertyDeclaration {
 }// end class
 
 /*
- * $Id$
+ * $Id: PropertyDeclaration.java,v 1.21 2007-05-21 21:47:30 peterbrant Exp $
  *
- * $Log$
- * Revision 1.21  2007/05/21 21:47:30  peterbrant
- * Final CSS clean up
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.20  2007/02/20 17:23:14  peterbrant
  * Optimize fingerprint calculation
  *

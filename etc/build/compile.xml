@@ -1,18 +1,9 @@
-<project name="build.compile">
-    <import file="properties.xml" />
-    <import file="preset-defs.xml" />
-    <import file="../../build.xml" />
 
+<project name="build.compile">
 <!-- Compiles the Flying Saucer browser along with the main codebase -->
 	<target name="compile.browser" depends="compile,resources.browser">
 		<javac-full srcdir="${src.browser.java.dir}"/>
 	</target>
-
-    <!-- Compile log4j support -->
-    <target name="compile.log4j" depends="compile">
-      <javac-full srcdir="${src.log4j.dir}" classpath="${lib.log4j}">
-      </javac-full>
-    </target>
 
     <!-- Compiles the Flying Saucer SVG sample along with the main codebase -->
     <target name="compile.svg" depends="compile,resources.svg">
@@ -34,12 +25,52 @@
 		<javac-full srcdir="${src.samples.java.dir}"/>
 	</target>
 
+	<!-- Compiles the compare tool -->
+	<target name="compile.fsc" depends="init">
+		<javac-full srcdir="${src.java.dir}/compare">
+            <classpath >
+              <fileset dir="${libraries.dir}">
+                <include name="*.jar"/>
+              </fileset>
+              <fileset dir="${libraries.dir}/dev/jdic_win_30092005">
+                <include name="*.jar"/>
+              </fileset>
+            </classpath>
+
+        </javac-full>
+        <copy todir="build/classes/compare" file="${src.java.dir}/compare/fsc_help.html" />
+	</target>
+
     <!-- Cleans all build files, then recompiles. -->
-	<target name="compile.demo" description="Rebuilds demo apps--browser, about" depends="clean,compile,compile.browser,compile.about">
+	<target name="compile.demo" description="Rebuilds demo apps--browser, about, photogallery" depends="clean,compile,compile.browser,compile.about,compile.photogallery">
 		<antcall target="clean" />
 		<antcall target="compile" />
 		<antcall target="compile.browser" />
 		<antcall target="compile.about" />
+		<antcall target="compile.photogallery" />
+	</target>
+
+	<target name="compile.photogallery" depends="compile">
+		<javac-full srcdir="${src.photogallery.java.dir}"/>
+		<mkdir dir="build/classes/demos"/>
+		<copy todir="build/classes/demos">
+			<fileset dir="demos/photogallery/xhtml">
+				<include name="*.xhtml"/>
+				<include name="*.png"/>
+				<include name="*.jpg"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="compile.filebrowser" depends="compile">
+		<javac-full srcdir="${src.filebrowser.java.dir}"/>
+		<copy todir="build/classes/">
+			<fileset dir="${src.filebrowser.java.dir}">
+				<include name="**/*.xhtml"/>
+				<include name="*.png"/>
+				<include name="*.jpg"/>
+			</fileset>
+		</copy>
 	</target>
     
     <!-- Compiles the Help/About Box demo along with the main codebase -->
@@ -53,6 +84,6 @@
 	</target>
 
     <!-- Compiles main codebase, browser and about box -->
-	<target name="compile.all" depends="compile, compile.browser, compile.about, compile.samples"></target>
+	<target name="compile.all" depends="compile, compile.browser, compile.about, compile.photogallery"></target>
 
 </project>

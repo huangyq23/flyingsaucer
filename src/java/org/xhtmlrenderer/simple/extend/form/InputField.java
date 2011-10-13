@@ -22,14 +22,12 @@ package org.xhtmlrenderer.simple.extend.form;
 import javax.swing.JComponent;
 
 import org.w3c.dom.Element;
-import org.xhtmlrenderer.layout.LayoutContext;
-import org.xhtmlrenderer.render.BlockBox;
 import org.xhtmlrenderer.simple.extend.XhtmlForm;
 
 public abstract class InputField extends FormField {
 
-    public InputField(Element e, XhtmlForm form, LayoutContext context, BlockBox box) {
-        super(e, form, context, box);
+    public InputField(Element e, XhtmlForm form) {
+        super(e, form);
     }
 
     public abstract JComponent create();

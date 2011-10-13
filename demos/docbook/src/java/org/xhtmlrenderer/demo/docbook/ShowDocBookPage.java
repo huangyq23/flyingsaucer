@@ -73,6 +73,7 @@ public class ShowDocBookPage {
     private void setAntiAlias(XHTMLPanel introPanel) {
         SharedContext sharedContext = introPanel.getSharedContext();
         sharedContext.setTextRenderer(new Java2DTextRenderer());
+        sharedContext.getTextRenderer().setSmoothingLevel(TextRenderer.HIGH);
     }
 
     private void showAboutDialog() {
@@ -101,6 +102,9 @@ public class ShowDocBookPage {
         aboutDlg.getContentPane().add(outer, BorderLayout.CENTER);
 
         aboutDlg.setTitle("About the Browser Demo");
+
+        int x = (int) frame.getLocationOnScreen().getX();
+        int y = (int) frame.getLocationOnScreen().getX();
 
         int xx = (frame.getWidth() - aboutDlg.getWidth()) / 2;
         int yy = (frame.getHeight() - aboutDlg.getHeight()) / 2;

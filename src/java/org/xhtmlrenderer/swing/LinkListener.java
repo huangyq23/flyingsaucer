@@ -19,42 +19,14 @@
  */
 package org.xhtmlrenderer.swing;
 
-import java.awt.event.MouseEvent;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xhtmlrenderer.render.Box;
 
-
-/**
- * A LinkListener is used to respond to a user clicking Box elements in a {@link org.xhtmlrenderer.swing.BasicPanel},
- * in particular to handle anchors and navigation. When a Box is clicked, if it has an anchor associated with it, the
- * panel will be requested to navigate to that URI.
- */
-public class LinkListener extends DefaultFSMouseListener {
-    /**
-     * Utility method to request the panel navigate to the given URI.
-     *
-     * @param panel the panel on which the listener is attached
-     * @param uri the URI to navigate to
-     */
-    public void linkClicked(BasicPanel panel, String uri) {
-        panel.setDocumentRelative(uri);
+public class LinkListener implements FSMouseListener {
+    public LinkListener() {
     }
 
-    /**
-     * Triggers the click on a box. If the Box's element has an associated URI (e.g. is an anchor), notifies the
-     * panel to navigate to that URI.
-     *
-     * @param panel the panel where the mouse button has been released.
-     * @param box the box on which the mouse cursor is currently located
-     */
-    public void onMouseUp(BasicPanel panel, Box box) {
-        checkForLink(panel, box);
-    }
-
-    // tests whether the element associated with the Box has an associated URI (e.g. is an anchor), and if so, calls
-    // back to the panel to navigate to that URI
     private void checkForLink(BasicPanel panel, Box box) {
         if (box == null || box.getElement() == null) {
             return;
@@ -67,20 +39,36 @@ public class LinkListener extends DefaultFSMouseListener {
         }
     }
 
-    // looks to see if the given element has a link URI associated with it; if so, returns the URI as a string, if
-    // not, returns null
     private String findLink(BasicPanel panel, Element e) {
         String uri = null;
 
         for (Node node = e; node.getNodeType() == Node.ELEMENT_NODE; node = node.getParentNode()) {
             uri = panel.getSharedContext().getNamespaceHandler().getLinkUri((Element) node);
-
+            
             if (uri != null) {
                 break;
             }
         }
 
         return uri;
+    }
+
+    public void linkClicked(BasicPanel panel, String uri) {
+        panel.setDocumentRelative(uri);
+        panel.repaint();
+    }
+
+    public void onMouseOut(BasicPanel panel, Box box) {
+    }
+
+    public void onMouseOver(BasicPanel panel, Box box) {
+    }
+
+    public void onMouseUp(BasicPanel panel, Box box) {
+        checkForLink(panel, box);
+    }
+
+    public void reset() {
     }
 }
 

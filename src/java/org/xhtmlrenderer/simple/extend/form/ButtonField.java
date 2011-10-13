@@ -27,26 +27,19 @@ import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 
 import org.w3c.dom.Element;
-import org.xhtmlrenderer.layout.LayoutContext;
-import org.xhtmlrenderer.render.BlockBox;
 import org.xhtmlrenderer.simple.extend.XhtmlForm;
 
-class ButtonField extends AbstractButtonField {
-    public ButtonField(Element e, XhtmlForm form, LayoutContext context, BlockBox box) {
-        super(e, form, context, box);
+class ButtonField extends InputField {
+    public ButtonField(Element e, XhtmlForm form) {
+        super(e, form);
     }
     
     public JComponent create() {
         JButton button = new JButton();
 
-        String value = getAttribute("value");
-
-        if (value == null || value.length() == 0)
-            value = " ";    //otherwise we get a very short button
-
-        applyComponentStyle(button);
-
-        button.setText(value);
+        if (hasAttribute("value")) {
+            button.setText(getAttribute("value"));
+        }
         
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

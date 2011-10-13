@@ -158,7 +158,7 @@ public class LengthValue extends DerivedValue {
             case CSSPrimitiveValue.CSS_PERCENTAGE:
                 // percentage depends on the property this value belongs to
                 if (cssName == CSSName.VERTICAL_ALIGN) {
-                    baseValue = style.getParent().getLineHeight(ctx);
+                    relVal = style.getParent().getLineHeight(ctx);
                 } else if (cssName == CSSName.FONT_SIZE) {
                     // same as with EM
                     FontSpecification parentFont = style.getParent().getFont(ctx);
@@ -183,16 +183,14 @@ public class LengthValue extends DerivedValue {
         }
         //assert (new Float(absVal).intValue() >= 0);
 
-        if (XRLog.isLoggingEnabled()) {
-            if (cssName == CSSName.FONT_SIZE) {
-                XRLog.cascade(Level.FINEST, cssName + ", relative= " +
-                        relVal + " (" + stringValue + "), absolute= "
-                        + absVal);
-            } else {
-                XRLog.cascade(Level.FINEST, cssName + ", relative= " +
-                        relVal + " (" + stringValue + "), absolute= "
-                        + absVal + " using base=" + baseValue);
-            }
+        if (cssName == CSSName.FONT_SIZE) {
+            XRLog.cascade(Level.FINEST, cssName + ", relative= " +
+                    relVal + " (" + stringValue + "), absolute= "
+                    + absVal);
+        } else {
+            XRLog.cascade(Level.FINEST, cssName + ", relative= " +
+                    relVal + " (" + stringValue + "), absolute= "
+                    + absVal + " using base=" + baseValue);
         }
 
         double d = Math.round((double) absVal);
@@ -206,5 +204,5 @@ public class LengthValue extends DerivedValue {
 }
 
 /*
- * $Id$
+ * $Id:  $
  */

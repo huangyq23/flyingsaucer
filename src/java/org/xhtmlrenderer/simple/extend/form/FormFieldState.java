@@ -19,8 +19,6 @@
  */
 package org.xhtmlrenderer.simple.extend.form;
 
-import org.xhtmlrenderer.util.ArrayUtil;
-
 import java.util.List;
 
 public class FormFieldState {
@@ -43,7 +41,7 @@ public class FormFieldState {
     }
 
     public int[] getSelectedIndices() {
-        return ArrayUtil.cloneOrEmpty(_selected);
+        return _selected;
     }
     
     public static FormFieldState fromString(String s) {

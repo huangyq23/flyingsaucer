@@ -22,7 +22,7 @@ public class PlainTextXMLReader implements XMLReader {
     private ErrorHandler errorHandler;
     private BufferedReader text;
 
-    public PlainTextXMLReader(InputStream is) {
+    PlainTextXMLReader(InputStream is) {
         text = new BufferedReader(new InputStreamReader(is));
     }
 

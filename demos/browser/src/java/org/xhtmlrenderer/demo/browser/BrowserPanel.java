@@ -19,34 +19,23 @@
  */
 package org.xhtmlrenderer.demo.browser;
 
-import org.w3c.dom.Document;
-import org.xhtmlrenderer.event.DocumentListener;
-import org.xhtmlrenderer.layout.SharedContext;
-import org.xhtmlrenderer.pdf.ITextRenderer;
-import org.xhtmlrenderer.pdf.PDFCreationListener;
-import org.xhtmlrenderer.pdf.util.XHtmlMetaToPdfInfoAdapter;
-import org.xhtmlrenderer.resource.XMLResource;
-import org.xhtmlrenderer.simple.FSScrollPane;
-import org.xhtmlrenderer.swing.ImageResourceLoader;
-import org.xhtmlrenderer.swing.ScalableXHTMLPanel;
-import org.xhtmlrenderer.swing.SwingReplacedElementFactory;
-import org.xhtmlrenderer.util.GeneralUtil;
-import org.xhtmlrenderer.util.Uu;
-import org.xhtmlrenderer.util.XRLog;
-import org.xhtmlrenderer.util.XRRuntimeException;
-
-import javax.swing.*;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.StringReader;
-import java.io.IOException;
+/*import java.awt.event.ItemListener;*/
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.swing.*;
+
+import org.xhtmlrenderer.event.DocumentListener;
+import org.xhtmlrenderer.layout.SharedContext;
+import org.xhtmlrenderer.simple.FSScrollPane;
+import org.xhtmlrenderer.swing.ScalableXHTMLPanel;
+/*import org.xhtmlrenderer.swing.ScaleChangeEvent;
+import org.xhtmlrenderer.swing.ScaleChangeListener;*/
+import org.xhtmlrenderer.util.Uu;
+import org.xhtmlrenderer.util.XRLog;
 
 
 /**
@@ -116,11 +105,13 @@ public class BrowserPanel extends JPanel implements DocumentListener {
 	BrowserPanelListener listener;
 
 	JButton print_preview;
+	/*JComboBox cbxZoom;
+	//private ScaleFactor[] availableScales;*/
 
 	/**
 	 * Description of the Field
 	 */
-	public static final Logger logger = Logger.getLogger("app.browser");
+	public static Logger logger = Logger.getLogger("app.browser");
 
 	private PanelManager manager;
 	JButton goToPage;
@@ -138,16 +129,40 @@ public class BrowserPanel extends JPanel implements DocumentListener {
 		this.listener = listener;
 	}
 
+
 	/**
 	 * Description of the Method
 	 */
 	public void init() {
+		/*availableScales = initializeScales();*/
 		forward = new JButton();
 		backward = new JButton();
 		stop = new JButton();
 		reload = new JButton();
 		goToPage = new JButton();
 		goHome = new JButton();
+		/*cbxZoom = new JComboBox(availableScales);*/
+		// awfull hack to select the 100%
+		/*cbxZoom.setSelectedIndex(2);
+		cbxZoom.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					ScaleFactor factor = (ScaleFactor) e.getItem();
+					if (factor.getFactor() == ScaleFactor.PAGE_WIDTH) {
+						view.setScalePolicy(ScalableXHTMLPanel.SCALE_POLICY_FIT_WIDTH);
+						view.doLayout();
+					} else if (factor.getFactor() == ScaleFactor.PAGE_HEIGHT) {
+						view.setScalePolicy(ScalableXHTMLPanel.SCALE_POLICY_FIT_HEIGHT);
+						view.doLayout();
+					} else if (factor.getFactor() == ScaleFactor.PAGE_WHOLE) {
+						view.setScalePolicy(ScalableXHTMLPanel.SCALE_POLICY_FIT_WHOLE);
+						view.doLayout();
+					} else {
+						view.setScale(factor.getFactor());
+					}
+				}
+			}
+		});*/
 
 		url = new JTextField();
 		url.addFocusListener(new FocusAdapter() {
@@ -164,16 +179,9 @@ public class BrowserPanel extends JPanel implements DocumentListener {
 
 
 		manager = new PanelManager();
-        view = new ScalableXHTMLPanel(manager);
-        manager.setRepaintListener(view);
-        ImageResourceLoader irl = new ImageResourceLoader();
-        irl.setRepaintListener(view);
-        manager.setImageResourceLoader(irl);
-        view.getSharedContext().setReplacedElementFactory(new SwingReplacedElementFactory(view, irl));
-        view.addDocumentListener(manager);
-        view.setCenteredPagedView(true);
-        view.setBackground(Color.LIGHT_GRAY);
-        scroll = new FSScrollPane(view);
+		view = new ScalableXHTMLPanel(manager);
+		view.addDocumentListener(manager);
+		scroll = new FSScrollPane(view);
 		print_preview = new JButton();
 		print = new JButton();
 
@@ -359,111 +367,14 @@ public class BrowserPanel extends JPanel implements DocumentListener {
 			if (listener != null) {
 				listener.pageLoadSuccess(url_text, view.getDocumentTitle());
 			}
-		} catch (XRRuntimeException ex) {
-			XRLog.general(Level.SEVERE, "Runtime exception", ex);
-            setStatus("Can't load document");
-            handlePageLoadFailed(url_text, ex);
-        } catch (Exception ex) {
+		} catch (Exception
+				ex) {
 			XRLog.general(Level.SEVERE, "Could not load page for display.", ex);
 			ex.printStackTrace();
 		}
 	}
-	
-	public void exportToPdf( String path )
-	{
-       if (manager.getBaseURL() != null) {
-           setStatus( "Exporting to " + path + "..." );
-           OutputStream os = null;
-           try {
-               os = new FileOutputStream(path);
-               try {
-               ITextRenderer renderer = new ITextRenderer();
 
-               DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-               DocumentBuilder db = dbf.newDocumentBuilder();
-               Document doc =  db.parse(manager.getBaseURL());
-
-               PDFCreationListener pdfCreationListener = new XHtmlMetaToPdfInfoAdapter( doc );
-               renderer.setListener( pdfCreationListener );
-                              
-               renderer.setDocument(manager.getBaseURL());
-               renderer.layout();
-
-               renderer.createPDF(os);
-               setStatus( "Done export." );
-            } catch (Exception e) {
-                XRLog.general(Level.SEVERE, "Could not export PDF.", e);
-                e.printStackTrace();
-                setStatus( "Error exporting to PDF." );
-               } finally {
-                   try {
-                       os.close();
-                   } catch (IOException e) {
-                       // swallow
-            }
-        }
-           } catch (Exception e) {
-               e.printStackTrace();
-	}
-       }
-	}
-
-    private void handlePageLoadFailed(String url_text, XRRuntimeException ex) {
-        final XMLResource xr;
-        final String rootCause = getRootCause(ex);
-        final String msg = GeneralUtil.escapeHTML(addLineBreaks(rootCause, 80));
-        String notFound =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-        "<!DOCTYPE html PUBLIC \" -//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n" +
-                "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\n" +
-                        "<body>\n" +
-                        "<h1>Document can't be loaded</h1>\n" +
-                        "<p>Could not load the page at \n" +
-                        "<pre>" + GeneralUtil.escapeHTML(url_text) + "</pre>\n" +
-                        "</p>\n" +
-                        "<p>The page failed to load; the error was </p>\n" +
-                        "<pre>" + msg + "</pre>\n" +
-                        "</body>\n" +
-                        "</html>";
-
-        xr = XMLResource.load(new StringReader(notFound));
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                root.panel.view.setDocument(xr.getDocument(), null);
-            }
-        });
-   }
-
-    private String addLineBreaks(String _text, int maxLineLength) {
-        StringBuffer broken = new StringBuffer(_text.length() + 10);
-        boolean needBreak = false;
-        for (int i = 0; i < _text.length(); i++) {
-            if (i > 0 && i % maxLineLength == 0) needBreak = true;
-
-            final char c = _text.charAt(i);
-            if (needBreak && Character.isWhitespace(c)) {
-                System.out.println("Breaking: " + broken.toString());
-                needBreak = false;
-                broken.append('\n');
-            } else {
-                broken.append(c);
-            }
-        }
-        System.out.println("Broken! " + broken.toString());
-        return broken.toString();  
-    }
-
-    private String getRootCause(Exception ex) {
-        // FIXME
-        Throwable cause = ex;
-        while (cause != null) {
-            cause = cause.getCause();
-        }
-
-        return cause == null ? ex.getMessage() : cause.getMessage();
-    }
-
-    public void documentStarted() {
+	public void documentStarted() {
 		// TODO...
 	}
 
@@ -473,6 +384,33 @@ public class BrowserPanel extends JPanel implements DocumentListener {
 	public void documentLoaded() {
 		view.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 	}
+
+/*
+	public void scaleChanged(ScaleChangeEvent evt) {
+		if (evt.getComponent() == view) {
+			double scale = evt.getScale();
+			int ix = -1;
+			for (int i = 0; i < availableScales.length; i++) {
+				ScaleFactor sf = availableScales[i];
+				if (sf.getFactor() == scale) {
+					ix = i;
+					break;
+				}
+			}
+			ItemListener[] iListeners = cbxZoom.getItemListeners();
+			for (int i = 0; i < iListeners.length; i++) {
+				cbxZoom.removeItemListener(iListeners[i]);
+			}
+			if (ix != -1) {
+				cbxZoom.setSelectedIndex(ix);
+			}
+			for (int i = 0; i < iListeners.length; i++) {
+				cbxZoom.addItemListener(iListeners[i]);
+			}
+		}
+	}
+*/
+
 
 	/**
 	 * Sets the status attribute of the BrowserPanel object
@@ -503,32 +441,21 @@ public class BrowserPanel extends JPanel implements DocumentListener {
 
 
 	public void onLayoutException(Throwable t) {
-        // TODO: clean
-        t.printStackTrace();
+		t.printStackTrace();
+
 	}
 
+
 	public void onRenderException(Throwable t) {
-        // TODO: clean
 		t.printStackTrace();
 	}
+
 }
 
 /*
- * $Id$
+ * $Id: BrowserPanel.java,v 1.36 2007-07-14 12:56:40 pdoubleya Exp $
  *
- * $Log$
- * Revision 1.41  2009/08/03 19:36:29  pdoubleya
- * Add new listener for PDF generation which automatically parses HTML header information and adds it as PDF properties (e.g. title, subject). Patch submitted by Tim Telcik in email. Thanks!
- *
- * Revision 1.38  2008/09/06 18:44:29  peterbrant
- * Add PDF export to browser (patch from Mykola Gurov)
- *
- * Revision 1.37  2008/05/30 13:25:00  pdoubleya
- * Remove commented code blocks, add error handling if can't load page.
- *
- * Revision 1.36  2007/07/14 12:56:40  pdoubleya
- * Browser toolbar should not be movable
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.35  2007/07/13 13:32:31  pdoubleya
  * Add webstart entry point for browser with no URL or File/open option. Move Zoom to menu entry, add warning on first zoom. Move preview to menu entry. Reorganize launch method a little to allow for multiple entry points.
  *

@@ -20,18 +20,17 @@
  */
 package org.xhtmlrenderer.layout;
 
+import org.xhtmlrenderer.css.constants.CSSName;
+import org.xhtmlrenderer.css.constants.IdentValue;
+import org.xhtmlrenderer.render.BlockBox;
+import org.xhtmlrenderer.render.Box;
+import org.xhtmlrenderer.render.PageBox;
+
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.RandomAccess;
-
-import org.xhtmlrenderer.css.constants.CSSName;
-import org.xhtmlrenderer.css.constants.IdentValue;
-import org.xhtmlrenderer.render.BlockBox;
-import org.xhtmlrenderer.render.Box;
-import org.xhtmlrenderer.render.LineBox;
-import org.xhtmlrenderer.render.PageBox;
 
 /**
  * Utility class for laying block content.  It is called when a block box
@@ -43,8 +42,6 @@ import org.xhtmlrenderer.render.PageBox;
  * the rule will be dropped.
  */
 public class BlockBoxing {
-    private static final int NO_PAGE_TRIM = -1;
-
     private BlockBoxing() {
     }
 
@@ -63,7 +60,6 @@ public class BlockBoxing {
             relayoutDataList = new RelayoutDataList(localChildren.size());
         }
 
-        int pageCount = NO_PAGE_TRIM;
         BlockBox previousChildBox = null;
         for (Iterator i = localChildren.iterator(); i.hasNext();) {
             BlockBox child = (BlockBox) i.next();
@@ -71,46 +67,31 @@ public class BlockBoxing {
 
             RelayoutData relayoutData = null;
 
-            boolean mayCheckKeepTogether = false;
             if (c.isPrint()) {
                 relayoutData = relayoutDataList.get(offset);
                 relayoutData.setLayoutState(c.copyStateForRelayout());
                 relayoutData.setChildOffset(childOffset);
-                pageCount = c.getRootLayer().getPages().size();
-
-                child.setNeedPageClear(false);
-
-                if ((child.getStyle().isAvoidPageBreakInside() || child.getStyle().isKeepWithInline())
-                        && c.isMayCheckKeepTogether()) {
-                    mayCheckKeepTogether = true;
-                    c.setMayCheckKeepTogether(false);
-                }
             }
 
             layoutBlockChild(
-                    c, block, child, false, childOffset, NO_PAGE_TRIM,
-                    relayoutData == null ? null : relayoutData.getLayoutState());
+                    c, block, child, false, childOffset);
+
+            if (c.isPrint() && child.getStyle().isAvoidPageBreakInside() &&
+                    child.crossesPageBreak(c)) {
+                c.restoreStateForRelayout(relayoutData.getLayoutState());
+                child.reset(c);
+                layoutBlockChild(
+                        c, block, child, true, childOffset);
+
+                if (child.crossesPageBreak(c)) {
+                    c.restoreStateForRelayout(relayoutData.getLayoutState());
+                    child.reset(c);
+                    layoutBlockChild(
+                            c, block, child, false, childOffset);
+                }
+            }
 
             if (c.isPrint()) {
-                boolean needPageClear = child.isNeedPageClear();
-                if (needPageClear || mayCheckKeepTogether) {
-                    c.setMayCheckKeepTogether(mayCheckKeepTogether);
-                    boolean tryToAvoidPageBreak = child.getStyle().isAvoidPageBreakInside() && child.crossesPageBreak(c);
-                    boolean keepWithInline = child.isNeedsKeepWithInline(c);
-                    if (tryToAvoidPageBreak || needPageClear || keepWithInline) {
-                        c.restoreStateForRelayout(relayoutData.getLayoutState());
-                        child.reset(c);
-                        layoutBlockChild(
-                                c, block, child, true, childOffset, pageCount, relayoutData.getLayoutState());
-
-                        if (tryToAvoidPageBreak && child.crossesPageBreak(c) && ! keepWithInline) {
-                            c.restoreStateForRelayout(relayoutData.getLayoutState());
-                            child.reset(c);
-                            layoutBlockChild(
-                                    c, block, child, false, childOffset, pageCount, relayoutData.getLayoutState());
-                        }
-                    }
-                }
                 c.getRootLayer().ensureHasPage(c, child);
             }
 
@@ -130,7 +111,7 @@ public class BlockBoxing {
 
             if (c.isPrint()) {
                 if (child.getStyle().isForcePageBreakAfter()) {
-                    block.forcePageBreakAfter(c, child.getStyle().getIdent(CSSName.PAGE_BREAK_AFTER));
+                    block.expandToPageBottom(c);
                     childOffset = block.getHeight();
                 }
 
@@ -173,12 +154,18 @@ public class BlockBoxing {
             }
             if (mightNeedRelayout) {
                 int runStart = relayoutDataList.getRunStart(runEnd);
-                if ( isPageBreakBetweenChildBoxes(relayoutDataList, runStart, runEnd, c, block) ) {
+                Box runEndChild = block.getChild(runEnd);
+                if (c.getRootLayer().crossesPageBreak(c,
+                        block.getChild(runStart).getAbsY(),
+                        runEndChild.getAbsY() + runEndChild.getHeight())) {
                     result.setChanged(true);
                     block.resetChildren(c, runStart, offset);
                     result.setChildOffset(relayoutRun(c, localChildren, block,
                             relayoutDataList, runStart, offset, true));
-                    if ( isPageBreakBetweenChildBoxes(relayoutDataList, runStart, runEnd, c, block) ) {
+                    runEndChild = block.getChild(runEnd);
+                    if (c.getRootLayer().crossesPageBreak(c,
+                            block.getChild(runStart).getAbsY(),
+                            runEndChild.getAbsY() + runEndChild.getHeight())) {
                         block.resetChildren(c, runStart, offset);
                         result.setChildOffset(relayoutRun(c, localChildren, block,
                                 relayoutDataList, runStart, offset, false));
@@ -187,32 +174,6 @@ public class BlockBoxing {
             }
         }
         return result;
-    }
-
-    private static boolean isPageBreakBetweenChildBoxes(RelayoutDataList relayoutDataList,
-            int runStart, int runEnd, LayoutContext c, BlockBox block) {
-        for ( int i = runStart; i < runEnd; i++ ) {
-            Box prevChild = block.getChild(i);
-            Box nextChild = block.getChild(i+1);
-            // if nextChild is made of several lines, then only the first line
-            // is relevant for "page-break-before: avoid".
-            Box nextLine = getFirstLine(nextChild) == null ? nextChild : getFirstLine(nextChild);
-            int prevChildEnd = prevChild.getAbsY() + prevChild.getHeight();
-            int nextLineEnd = nextLine.getAbsY() + nextLine.getHeight();
-            if ( c.getRootLayer().crossesPageBreak(c, prevChildEnd, nextLineEnd) ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static LineBox getFirstLine(Box box) {
-        for ( Box child = box; child.getChildCount()>0; child = child.getChild(0) ) {
-            if ( child instanceof LineBox ) {
-                return (LineBox) child;
-            }
-        }
-        return null;
     }
 
     private static int relayoutRun(
@@ -226,48 +187,29 @@ public class BlockBoxing {
             childOffset += startPageBox.getBottom() - startBox.getAbsY();
         }
 
-        // reset height of parent as it is used for Y-setting of children
-        block.setHeight(childOffset);
-
-
         for (int i = start; i <= end; i++) {
             BlockBox child = (BlockBox) localChildren.get(i);
 
             RelayoutData relayoutData = relayoutDataList.get(i);
 
-            int pageCount = c.getRootLayer().getPages().size();
-
             //TODO:handle run-ins. For now, treat them as blocks
 
             c.restoreStateForRelayout(relayoutData.getLayoutState());
-            relayoutData.setChildOffset(childOffset);
-            boolean mayCheckKeepTogether = false;
-            if ((child.getStyle().isAvoidPageBreakInside() || child.getStyle().isKeepWithInline())
-                    && c.isMayCheckKeepTogether()) {
-                mayCheckKeepTogether = true;
-                c.setMayCheckKeepTogether(false);
-            }
             layoutBlockChild(
-                    c, block, child, false, childOffset, NO_PAGE_TRIM, relayoutData.getLayoutState());
+                    c, block, child, false, childOffset);
 
-            if (mayCheckKeepTogether) {
-                c.setMayCheckKeepTogether(true);
-                boolean tryToAvoidPageBreak =
-                    child.getStyle().isAvoidPageBreakInside() && child.crossesPageBreak(c);
-                boolean needPageClear = child.isNeedPageClear();
-                boolean keepWithInline = child.isNeedsKeepWithInline(c);
-                if (tryToAvoidPageBreak || needPageClear || keepWithInline) {
+            if (child.getStyle().isAvoidPageBreakInside() &&
+                    child.crossesPageBreak(c)) {
+                c.restoreStateForRelayout(relayoutData.getLayoutState());
+                child.reset(c);
+                layoutBlockChild(
+                        c, block, child, true, childOffset);
+
+                if (child.crossesPageBreak(c)) {
                     c.restoreStateForRelayout(relayoutData.getLayoutState());
                     child.reset(c);
                     layoutBlockChild(
-                            c, block, child, true, childOffset, pageCount, relayoutData.getLayoutState());
-
-                    if (tryToAvoidPageBreak && child.crossesPageBreak(c) && ! keepWithInline) {
-                        c.restoreStateForRelayout(relayoutData.getLayoutState());
-                        child.reset(c);
-                        layoutBlockChild(
-                                c, block, child, false, childOffset, pageCount, relayoutData.getLayoutState());
-                    }
+                            c, block, child, false, childOffset);
                 }
             }
 
@@ -280,12 +222,8 @@ public class BlockBoxing {
                 childOffset = child.getY() - relativeOffset.height + child.getHeight();
             }
 
-            if (childOffset > block.getHeight()) {
-                block.setHeight(childOffset);
-            }
-
             if (child.getStyle().isForcePageBreakAfter()) {
-                block.forcePageBreakAfter(c, child.getStyle().getIdent(CSSName.PAGE_BREAK_AFTER));
+                block.expandToPageBottom(c);
                 childOffset = block.getHeight();
             }
         }
@@ -295,20 +233,7 @@ public class BlockBoxing {
 
     private static void layoutBlockChild(
             LayoutContext c, BlockBox parent, BlockBox child,
-            boolean needPageClear, int childOffset, int trimmedPageCount, LayoutState layoutState) {
-        layoutBlockChild0(c, parent, child, needPageClear, childOffset, trimmedPageCount);
-        BreakAtLineContext bContext = child.calcBreakAtLineContext(c);
-        if (bContext != null) {
-            c.setBreakAtLineContext(bContext);
-            c.restoreStateForRelayout(layoutState);
-            child.reset(c);
-            layoutBlockChild0(c, parent, child, needPageClear, childOffset, trimmedPageCount);
-            c.setBreakAtLineContext(null);
-        }
-    }
-
-    private static void layoutBlockChild0(LayoutContext c, BlockBox parent, BlockBox child,
-            boolean needPageClear, int childOffset, int trimmedPageCount) {
+            boolean needPageClear, int childOffset) {
         child.setNeedPageClear(needPageClear);
 
         child.initStaticPos(c, parent, childOffset);
@@ -317,36 +242,25 @@ public class BlockBoxing {
         child.calcCanvasLocation();
 
         c.translate(0, childOffset);
-        repositionBox(c, child, trimmedPageCount);
+        repositionBox(c, child);
         child.layout(c);
         c.translate(-child.getX(), -child.getY());
     }
 
-    private static void repositionBox(LayoutContext c, BlockBox child, int trimmedPageCount) {
+    private static void repositionBox(LayoutContext c, BlockBox child) {
         boolean moved = false;
         if (child.getStyle().isRelative()) {
             Dimension delta = child.positionRelative(c);
             c.translate(delta.width, delta.height);
             moved = true;
         }
-        if (c.isPrint()) {
-            boolean pageClear = child.isNeedPageClear() ||
-                                    child.getStyle().isForcePageBreakBefore();
-            boolean needNewPageContext = child.checkPageContext(c);
-
-            if (needNewPageContext && trimmedPageCount != NO_PAGE_TRIM) {
-                c.getRootLayer().trimPageCount(trimmedPageCount);
-            }
-
-            if (pageClear || needNewPageContext) {
-                int delta = child.forcePageBreakBefore(
-                        c,
-                        child.getStyle().getIdent(CSSName.PAGE_BREAK_BEFORE),
-                        needNewPageContext);
-                c.translate(0, delta);
-                moved = true;
-                child.setNeedPageClear(false);
-            }
+        if (c.isPrint() &&
+                (child.isNeedPageClear() ||
+                        child.getStyle().isForcePageBreakBefore())) {
+            int delta = child.moveToNextPage(c);
+            c.translate(0, delta);
+            moved = true;
+            child.setNeedPageClear(false);
         }
         if (moved) {
             child.calcCanvasLocation();
@@ -471,7 +385,7 @@ public class BlockBoxing {
         }
 
         public void setStartsRun(boolean startsRun) {
-            _startsRun = startsRun;
+            this._startsRun = startsRun;
         }
 
         public int getChildOffset() {
@@ -493,39 +407,9 @@ public class BlockBoxing {
 }
 
 /*
- * $Id$
+ * $Id: BlockBoxing.java,v 1.63 2007-06-16 22:51:24 tobega Exp $
  *
- * $Log$
- * Revision 1.69  2009/05/12 17:38:30  peterbrant
- * Patch from Stefan Hoffmann
- *
- * Revision 1.68  2009/01/23 22:32:07  peterbrant
- * Fix NPE reported by Christophe M (thanks Patrick)
- *
- * Revision 1.67  2008/12/14 13:53:30  peterbrant
- * Implement -fs-keep-with-inline: keep property that instructs FS to try to avoid breaking a box so that only borders and padding appear on a page
- *
- * Revision 1.66  2008/04/12 01:04:13  peterbrant
- * Optimize implementation of page-break-inside: avoid
- *
- * Revision 1.65  2008/02/03 12:35:06  peterbrant
- * Need to update child offset when laying out a block again.  We'll need it later if two "keep together" runs adjoin.
- *
- * Revision 1.64  2007/08/19 22:22:52  peterbrant
- * Merge R8pbrant changes to HEAD
- *
- * Revision 1.63.2.3  2007/08/17 19:11:30  peterbrant
- * When paginating a table, move table past page break if header would overlap the page break
- *
- * Revision 1.63.2.2  2007/08/17 17:11:01  peterbrant
- * Try to avoid awkward row splits when paginating a table by making sure there is at least one line box on the same page as the start of the row
- *
- * Revision 1.63.2.1  2007/08/07 17:06:30  peterbrant
- * Implement named pages / Implement page-break-before/after: left/right / Experiment with efficient selection
- *
- * Revision 1.63  2007/06/16 22:51:24  tobega
- * We now support counters!
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.62  2007/06/11 22:24:53  peterbrant
  * Fix bug when calculating new initial position of a run of blocks tied together by page-break-before/after
  *

@@ -20,25 +20,25 @@
 package org.xhtmlrenderer.swing;
 
 import java.awt.Cursor;
-import java.awt.event.MouseEvent;
 
 import org.xhtmlrenderer.render.Box;
 
+public class CursorListener implements FSMouseListener {
 
-/**
- * A CursorListener is used to modify the current cursor in response to mouse events over the current
- * document. This implementation changes the cursor according to the cursor property that applies to the Box
- * on which the mouse is located.
- */
-public class CursorListener extends DefaultFSMouseListener {
-    /**
-     * {@inheritDoc}
-     */
+    public void onMouseOut(BasicPanel panel, Box box) {
+    }
+
     public void onMouseOver(BasicPanel panel, Box box) {
         Cursor c = box.getStyle().getCursor();
 
         if (!panel.getCursor().equals(c)) {
             panel.setCursor(c);
         }
+    }
+
+    public void onMouseUp(BasicPanel panel, Box box) {
+    }
+
+    public void reset() {
     }
 }

@@ -45,12 +45,9 @@ public class ConversionUtil {
 }// end class
 
 /*
- * $Id$
+ * $Id: ConversionUtil.java,v 1.3 2005-01-29 20:22:23 pdoubleya Exp $
  *
- * $Log$
- * Revision 1.3  2005/01/29 20:22:23  pdoubleya
- * Clean/reformat code. Removed commented blocks, checked copyright.
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.2  2004/10/23 13:30:42  pdoubleya
  * Re-formatted using JavaStyle tool.
  * Cleaned imports to resolve wildcards except for common packages (java.io, java.util, etc).

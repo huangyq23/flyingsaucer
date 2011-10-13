@@ -60,8 +60,6 @@ public class DerivedValueFactory {
                 return color;
             case PropertyValue.VALUE_TYPE_LIST:
                 return new ListValue(cssName, value);
-            case PropertyValue.VALUE_TYPE_FUNCTION:
-                return new FunctionValue(cssName, value);
             default:
                 throw new IllegalArgumentException();
         }

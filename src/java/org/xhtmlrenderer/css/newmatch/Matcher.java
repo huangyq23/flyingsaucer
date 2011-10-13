@@ -22,12 +22,10 @@ package org.xhtmlrenderer.css.newmatch;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -39,11 +37,10 @@ import org.xhtmlrenderer.css.sheet.PageRule;
 import org.xhtmlrenderer.css.sheet.Ruleset;
 import org.xhtmlrenderer.css.sheet.Stylesheet;
 import org.xhtmlrenderer.util.XRLog;
-import org.xhtmlrenderer.util.Util;
 
 
 /**
- * @author Torbjorn Gannholm
+ * @author Torbj�rn Gannholm
  */
 public class Matcher {
 
@@ -61,7 +58,6 @@ public class Matcher {
     private Set _visitElements;
     
     private List _pageRules;
-    private List _fontFaceRules;
     
     public Matcher(
             TreeResolver tr, AttributeResolver ar, StylesheetFactory factory, List stylesheets, String medium) {
@@ -71,7 +67,6 @@ public class Matcher {
         _styleFactory = factory;
         
         _pageRules = new ArrayList();
-        _fontFaceRules = new ArrayList();
         docMapper = createDocumentMapper(stylesheets, medium);
     }
     
@@ -102,33 +97,45 @@ public class Matcher {
         }
     }
     
-    public PageInfo getPageCascadedStyle(String pageName, String pseudoPage) {
+    public CascadedStyle getPageCascadedStyle() {
+        return getPageCascadedStyle(null);
+    }
+    
+    public CascadedStyle getPageCascadedStyle(String pseudoPage) {
         List props = new ArrayList();
-        Map marginBoxes = new HashMap();
 
+        if (pseudoPage == null) {
+            addPageRules(props, null);
+        } else if (pseudoPage.equals("left") || pseudoPage.equals("right")) {
+            addPageRules(props, null);
+            addPageRules(props, pseudoPage);
+        } else if (pseudoPage.equals("first")) {
+            addPageRules(props, null);
+            // assume first page is a left page
+            addPageRules(props, "left");
+            addPageRules(props, "first");
+        }
+        
+        if (props.isEmpty()) {
+            return CascadedStyle.emptyCascadedStyle;
+        } else {
+            return new CascadedStyle(props.iterator());
+        }
+    }
+    
+    private void addPageRules(List props, String pseudoPage) {
         for (Iterator i = _pageRules.iterator(); i.hasNext(); ) {
-            PageRule pageRule = (PageRule)i.next();
-            
-            if (pageRule.applies(pageName, pseudoPage)) {
-                props.addAll(pageRule.getRuleset().getPropertyDeclarations());
-                marginBoxes.putAll(pageRule.getMarginBoxes());
+            Ruleset r = (Ruleset)i.next();
+            boolean matches = 
+                (pseudoPage == null && 
+                    (r.getSelectorText() == null || r.getSelectorText().trim().equals("")) ) ||
+                (r.getSelectorText() != null && r.getSelectorText().trim().equals(":" + pseudoPage));
+            if (matches) {
+                props.addAll(r.getPropertyDeclarations());
             }
         }
-        
-        CascadedStyle style = null;
-        if (props.isEmpty()) {
-            style = CascadedStyle.emptyCascadedStyle;
-        } else {
-            style = new CascadedStyle(props.iterator());
-        }
-        
-        return new PageInfo(props, style, marginBoxes);
     }
-    
-    public List getFontFaceRules() {
-        return _fontFaceRules;
-    }
-    
+
     public boolean isVisitedStyled(Object e) {
         return _visitElements.contains(e);
     }
@@ -168,7 +175,6 @@ public class Matcher {
     
     private void addAllStylesheets(List stylesheets, TreeMap sorter, String medium) {
         int count = 0;
-        int pCount = 0;
         for (Iterator i = stylesheets.iterator(); i.hasNext(); ) {
             Stylesheet stylesheet = (Stylesheet)i.next();
             for (Iterator j = stylesheet.getContents().iterator(); j.hasNext(); ) {
@@ -180,8 +186,7 @@ public class Matcher {
                         sorter.put(selector.getOrder(), selector);
                     }
                 } else if (obj instanceof PageRule) {
-                    ((PageRule)obj).setPos(++pCount);
-                    _pageRules.add(obj);
+                    _pageRules.add(((PageRule)obj).getRuleset());
                 } else if (obj instanceof MediaRule) {
                     MediaRule mediaRule = (MediaRule)obj;
                     if (mediaRule.matches(medium)) {
@@ -196,24 +201,7 @@ public class Matcher {
                     }
                 }
             }
-            
-            _fontFaceRules.addAll(stylesheet.getFontFaceRules());
         }
-        
-        Collections.sort(_pageRules, new Comparator() {
-            public int compare(Object o1, Object o2) {
-                PageRule p1 = (PageRule)o1;
-                PageRule p2 = (PageRule)o2;
-                
-                if (p1.getOrder() - p2.getOrder() < 0) {
-                    return -1;
-                } else if (p1.getOrder() == p2.getOrder()) {
-                    return 0;
-                } else {
-                    return 1;
-                }
-            }
-        });
     }
 
     private void link(Object e, Mapper m) {
@@ -291,7 +279,7 @@ public class Matcher {
             }
             
             String style = _attRes.getElementStyling(e);
-            if (Util.isNullOrEmpty(style)) {
+            if (style == null || style.equals("")) {
                 return null;
             }
             
@@ -305,7 +293,7 @@ public class Matcher {
                 return null;
             }
             String style = _attRes.getNonCssStyling(e);
-            if (Util.isNullOrEmpty(style)) {
+            if (style == null || style.equals("")) {
                 return null;
             }
             return _styleFactory.parseStyleDeclaration(org.xhtmlrenderer.css.sheet.StylesheetInfo.AUTHOR, style);
@@ -316,7 +304,7 @@ public class Matcher {
      * Mapper represents a local CSS for a Node that is used to match the Node's
      * children.
      *
-     * @author Torbjorn Gannholm
+     * @author Torbj�rn Gannholm
      */
     class Mapper {
         java.util.List axes;
@@ -325,7 +313,7 @@ public class Matcher {
         private HashMap children;
 
         Mapper(java.util.Collection selectors) {
-            axes = new java.util.ArrayList(selectors.size());
+            axes = new java.util.ArrayList();
             axes.addAll(selectors);
         }
 
@@ -341,11 +329,11 @@ public class Matcher {
          */
         Mapper mapChild(Object e) {
             //Mapper childMapper = new Mapper();
-            java.util.List childAxes = new ArrayList(axes.size() + 10);
+            java.util.List childAxes = new ArrayList();
             java.util.HashMap pseudoSelectors = new java.util.HashMap();
             java.util.List mappedSelectors = new java.util.LinkedList();
             StringBuffer key = new StringBuffer();
-            for (int i = 0, size = axes.size(); i < size; i++) {
+            for (int i = 0; i < axes.size(); i++) {
                 Selector sel = (Selector) axes.get(i);
                 if (sel.getAxis() == Selector.DESCENDANT_AXIS) {
                     //carry it forward to other descendants

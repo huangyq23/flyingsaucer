@@ -67,12 +67,9 @@ public class XLayout /*extends CustomBlockLayout*/ {
 }
 
 /*
- * $Id$
+ * $Id: XLayout.java,v 1.11 2005-10-27 00:09:10 tobega Exp $
  *
- * $Log$
- * Revision 1.11  2005/10/27 00:09:10  tobega
- * Sorted out Context into RenderingContext and LayoutContext
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.10  2005/05/13 15:23:57  tobega
  * Done refactoring box borders, margin and padding. Hover is working again.
  *

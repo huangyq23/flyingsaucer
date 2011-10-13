@@ -88,10 +88,6 @@ public class CascadedStyle {
         return new CascadedStyle(Arrays.asList(decls).iterator());
     }
     
-    public static CascadedStyle createLayoutStyle(List decls) {
-        return new CascadedStyle(decls.iterator());
-    }    
-    
     /**
      * Creates a <code>CascadedStyle</code> using style information from
      * <code>startingPoint</code> and then adding the property declarations
@@ -251,15 +247,9 @@ public class CascadedStyle {
 }// end class
 
 /*
- * $Id$
+ * $Id: CascadedStyle.java,v 1.18 2007-04-12 12:29:11 peterbrant Exp $
  *
- * $Log$
- * Revision 1.19  2007/10/31 23:14:41  peterbrant
- * Add rudimentary support for @font-face rules
- *
- * Revision 1.18  2007/04/12 12:29:11  peterbrant
- * Properly handle floated tables with captions
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.17  2007/02/20 17:23:15  peterbrant
  * Optimize fingerprint calculation
  *

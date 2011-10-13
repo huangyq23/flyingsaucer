@@ -304,7 +304,7 @@ class ElementPropertiesPanel extends JPanel {
      *
      * @author empty
      */
-    static class PropertiesJTable extends JTable {
+    class PropertiesJTable extends JTable {
         private static final long serialVersionUID = 1L;
 
         /**
@@ -358,7 +358,7 @@ class ElementPropertiesPanel extends JPanel {
      *
      * @author Patrick Wright
      */
-    static class PropertiesTableModel extends AbstractTableModel {
+    class PropertiesTableModel extends AbstractTableModel {
         private static final long serialVersionUID = 1L;
 
         /**
@@ -793,17 +793,9 @@ class DOMTreeCellRenderer extends DefaultTreeCellRenderer {
 }//}}}
 
 /*
- * $Id$
+ * $Id: DOMInspector.java,v 1.17 2007-05-20 23:25:33 peterbrant Exp $
  *
- * $Log$
- * Revision 1.18  2009/05/09 14:15:14  pdoubleya
- * FindBugs: inner class could be static
- *
- * Revision 1.17  2007/05/20 23:25:33  peterbrant
- * Various code cleanups (e.g. remove unused imports)
- *
- * Patch from Sean Bright
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.16  2005/10/27 00:09:08  tobega
  * Sorted out Context into RenderingContext and LayoutContext
  *

@@ -126,12 +126,9 @@ public class XRSimpleLogFormatter extends Formatter {
 }// end class
 
 /*
- * $Id$
+ * $Id: XRSimpleLogFormatter.java,v 1.6 2005-04-07 16:15:47 pdoubleya Exp $
  *
- * $Log$
- * Revision 1.6  2005/04/07 16:15:47  pdoubleya
- * Typo.
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.5  2005/01/29 20:18:37  pdoubleya
  * Clean/reformat code. Removed commented blocks, checked copyright.
  *

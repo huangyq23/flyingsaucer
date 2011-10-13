@@ -19,11 +19,12 @@
  */
 package org.xhtmlrenderer.context;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.LineNumberReader;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
 
 import org.xhtmlrenderer.css.extend.StylesheetFactory;
@@ -35,6 +36,7 @@ import org.xhtmlrenderer.css.sheet.StylesheetInfo;
 import org.xhtmlrenderer.extend.UserAgentCallback;
 import org.xhtmlrenderer.resource.CSSResource;
 import org.xhtmlrenderer.util.XRLog;
+import org.xhtmlrenderer.util.XRRuntimeException;
 
 /**
  * A Factory class for Cascading Style Sheets. Sheets are parsed using a single
@@ -47,7 +49,7 @@ public class StylesheetFactoryImpl implements StylesheetFactory {
     /**
      * the UserAgentCallback to resolve uris
      */
-    private UserAgentCallback _userAgentCallback;
+    private UserAgentCallback _userAgent;
 
     private int _cacheCapacity = 16;
 
@@ -64,8 +66,8 @@ public class StylesheetFactoryImpl implements StylesheetFactory {
             };
     private CSSParser _cssParser;
 
-    public StylesheetFactoryImpl(UserAgentCallback userAgentCallback) {
-        _userAgentCallback = userAgentCallback;
+    public StylesheetFactoryImpl(UserAgentCallback userAgent) {
+        _userAgent = userAgent;
         _cssParser = new CSSParser(new CSSErrorHandler() {
             public void error(String uri, String message) {
                 XRLog.cssParse(Level.WARNING, "(" + uri + ") " + message);
@@ -77,9 +79,8 @@ public class StylesheetFactoryImpl implements StylesheetFactory {
         try {
             return _cssParser.parseStylesheet(info.getUri(), info.getOrigin(), reader);
         } catch (IOException e) {
-            XRLog.cssParse(Level.WARNING, "Couldn't parse stylesheet at URI " + info.getUri() + ": " + e.getMessage(), e);
-            e.printStackTrace();
-            return new Stylesheet(info.getUri(), info.getOrigin());
+            // XXX Should we really just give up?  or skip and continue?
+            throw new XRRuntimeException("IOException on parsing style seet from a Reader; don't know the URI.", e);
         }
     }
 
@@ -87,23 +88,42 @@ public class StylesheetFactoryImpl implements StylesheetFactory {
      * @return Returns null if uri could not be loaded
      */
     private Stylesheet parse(StylesheetInfo info) {
-        CSSResource cr = _userAgentCallback.getCSSResource(info.getUri());
-        // Whether by accident or design, InputStream will never be null
-        // since the null resource stream is wrapped in a BufferedInputStream
+        CSSResource cr = _userAgent.getCSSResource(info.getUri());
         InputStream is = cr.getResourceInputSource().getByteStream();
+        Stylesheet sheet = null;
+
         try {
-            return parse(new InputStreamReader(is, "UTF-8"), info);
-        } catch (UnsupportedEncodingException e) {
-            // Shouldn't happen
-            throw new RuntimeException(e.getMessage(), e);
-        } finally {
             if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    // ignore
-                }
+                sheet = parse(new InputStreamReader(is), info);
             }
+        } catch (Exception e) {
+            debugBadStyleSheet(info);
+            if (e instanceof XRRuntimeException) {
+                throw (XRRuntimeException) e;
+            } else {
+                throw new XRRuntimeException("Failed on parsing CSS sheet at " + info.getUri(), e);
+            }
+
+        }
+        return sheet;
+    }
+
+    private void debugBadStyleSheet(StylesheetInfo info) {
+        InputStream is = _userAgent.getCSSResource(info.getUri()).getResourceInputSource().getByteStream();
+        if (is != null) {
+            try {
+                Reader r = new InputStreamReader(is);
+                LineNumberReader lnr = new LineNumberReader(new BufferedReader(r));
+                StringBuffer sb = new StringBuffer();
+                String line = null;
+                while ((line = lnr.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+                XRLog.cssParse(sb.toString());
+            } catch (Exception ex) {
+                XRLog.cssParse("Failed to read CSS sheet at " + info.getUri() + " for debugging.");
+            }
+
         }
     }
 
@@ -175,13 +195,5 @@ public class StylesheetFactoryImpl implements StylesheetFactory {
             putStylesheet(info.getUri(), s);
         }
         return s;
-    }
-
-    public void setUserAgentCallback(UserAgentCallback userAgent) {
-        _userAgentCallback = userAgent;
-    }
-    
-    public void setSupportCMYKColors(boolean b) {
-        _cssParser.setSupportCMYKColors(b);
     }
 }

@@ -195,14 +195,9 @@ Uu.p("url_text = " + url_text);
 }
 
 /*
- * $Id$
+ * $Id: AboutBox.java,v 1.11 2007-05-20 23:25:33 peterbrant Exp $
  *
- * $Log$
- * Revision 1.11  2007/05/20 23:25:33  peterbrant
- * Various code cleanups (e.g. remove unused imports)
- *
- * Patch from Sean Bright
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.10  2006/07/31 14:32:40  pdoubleya
  * Fix throw claiuse
  *

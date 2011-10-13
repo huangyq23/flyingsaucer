@@ -2,21 +2,18 @@
 #
 # keyword list from Version Management with CVS - the CVS manual
 # 
-# $Author$
+# $Author: pdoubleya $
 # $CVSHeader
-# $Date$
-# $Header$
-# $Id$
-# $Name$
-# $Locker$
-# $Log$
-# Revision 1.2  2004/10/14 13:03:59  pdoubleya
-# Removed duplicate keyword list.
-#
+# $Date: 2004-10-14 13:03:59 $
+# $Header: /zpool01/javanet/scm/svn/tmp/cvs2svn/xhtmlrenderer/temp/cvs-keyword-expansion.txt,v 1.2 2004-10-14 13:03:59 pdoubleya Exp $
+# $Id: cvs-keyword-expansion.txt,v 1.2 2004-10-14 13:03:59 pdoubleya Exp $
+# $Name: not supported by cvs2svn $
+# $Locker:  $
+# $Log: not supported by cvs2svn $
 # Revision 1.1  2004/10/14 13:03:11  pdoubleya
 # Added to CVS.
 #
-# $Revision$
-# $Source$
-# $State$
+# $Revision: 1.2 $
+# $Source: /zpool01/javanet/scm/svn/tmp/cvs2svn/xhtmlrenderer/temp/cvs-keyword-expansion.txt,v $
+# $State: Exp $
 

@@ -4,7 +4,7 @@
 
      This is XHTML, a reformulation of HTML as a modular XML application.
      Copyright 1998-2001 W3C (MIT, INRIA, Keio), All Rights Reserved.
-     Revision: $Id$
+     Revision: $Id: xhtml-notations-1.mod,v 1.1 2005-03-28 14:23:16 pdoubleya Exp $
 
      This DTD module is identified by the PUBLIC and SYSTEM identifiers:
 

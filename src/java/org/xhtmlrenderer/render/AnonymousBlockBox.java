@@ -26,6 +26,7 @@ import java.util.List;
 import org.w3c.dom.Element;
 import org.xhtmlrenderer.css.style.CalculatedStyle;
 import org.xhtmlrenderer.css.style.CssContext;
+import org.xhtmlrenderer.layout.InlineBoxing;
 import org.xhtmlrenderer.layout.LayoutContext;
 import org.xhtmlrenderer.layout.Styleable;
 
@@ -44,16 +45,16 @@ public class AnonymousBlockBox extends BlockBox {
     }
 
     public void layout(LayoutContext c) {
-        layoutInlineChildren(c, 0, calcInitialBreakAtLine(c), true);
+        InlineBoxing.layoutContent(c, this, 0);
     }
 
     public int getContentWidth() {
         return getContainingBlock().getContentWidth();
     }
     
-    public Box find(CssContext cssCtx, int absX, int absY, boolean findAnonymous) {
-        Box result = super.find(cssCtx, absX, absY, findAnonymous);
-        if (! findAnonymous && result == this) {
+    public Box find(CssContext cssCtx, int absX, int absY) {
+        Box result = super.find(cssCtx, absX, absY);
+        if (result == this) {
             return getParent();
         } else {
             return result;
@@ -73,7 +74,7 @@ public class AnonymousBlockBox extends BlockBox {
         for (Iterator i = getInlineContent().iterator(); i.hasNext(); ) {
             Styleable styleable = (Styleable)i.next();
             CalculatedStyle style = styleable.getStyle();
-            if (! (style.isFloated() || style.isAbsolute() || style.isFixed() || style.isRunning())) {
+            if (! (style.isFloated() || style.isAbsolute() || style.isFixed())) {
                 return false;
             }
         }
@@ -98,38 +99,13 @@ public class AnonymousBlockBox extends BlockBox {
     
     public void styleText(LayoutContext c) {
         styleText(c, getParent().getStyle());
-    } 
-    
-    public BlockBox copyOf() {
-        throw new IllegalArgumentException("cannot be copied");
-    }
+    }    
 }
 
 /*
- * $Id$
+ * $Id: AnonymousBlockBox.java,v 1.24 2007-06-07 16:56:29 peterbrant Exp $
  *
- * $Log$
- * Revision 1.27  2008/12/14 13:53:32  peterbrant
- * Implement -fs-keep-with-inline: keep property that instructs FS to try to avoid breaking a box so that only borders and padding appear on a page
- *
- * Revision 1.26  2007/08/28 22:31:26  peterbrant
- * Implement widows and orphans properties
- *
- * Revision 1.25  2007/08/19 22:22:50  peterbrant
- * Merge R8pbrant changes to HEAD
- *
- * Revision 1.24.2.3  2007/08/07 17:06:32  peterbrant
- * Implement named pages / Implement page-break-before/after: left/right / Experiment with efficient selection
- *
- * Revision 1.24.2.2  2007/07/11 22:48:30  peterbrant
- * Further progress on running headers and footers
- *
- * Revision 1.24.2.1  2007/07/09 22:18:03  peterbrant
- * Begin work on running headers and footers and named pages
- *
- * Revision 1.24  2007/06/07 16:56:29  peterbrant
- * When vertically aligning table cell content, call layout again on cells as necessary to make sure pagination properties are respected at the cell's final position (and to make sure line boxes can't straddle page breaks).
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.23  2007/05/10 00:39:38  peterbrant
  * Anonymous block boxes were always being skipped when collapsing margins
  *

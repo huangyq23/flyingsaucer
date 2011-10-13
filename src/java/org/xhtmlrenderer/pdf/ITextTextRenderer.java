@@ -19,32 +19,22 @@
  */
 package org.xhtmlrenderer.pdf;
 
-import java.awt.Rectangle;
-
-import org.xhtmlrenderer.extend.FSGlyphVector;
 import org.xhtmlrenderer.extend.FontContext;
 import org.xhtmlrenderer.extend.OutputDevice;
 import org.xhtmlrenderer.extend.TextRenderer;
 import org.xhtmlrenderer.pdf.ITextFontResolver.FontDescription;
 import org.xhtmlrenderer.render.FSFont;
 import org.xhtmlrenderer.render.FSFontMetrics;
-import org.xhtmlrenderer.render.JustificationInfo;
 
 import com.lowagie.text.pdf.BaseFont;
 
 public class ITextTextRenderer implements TextRenderer {
-    private static float TEXT_MEASURING_DELTA = 0.01f;
-    
+
     public void setup(FontContext context) {
     }
 
     public void drawString(OutputDevice outputDevice, String string, float x, float y) {
-        ((ITextOutputDevice)outputDevice).drawString(string, x, y, null);
-    }
-    
-    public void drawString(
-            OutputDevice outputDevice, String string, float x, float y, JustificationInfo info) {
-        ((ITextOutputDevice)outputDevice).drawString(string, x, y, info);
+        ((ITextOutputDevice)outputDevice).drawString(string, x, y);
     }
 
     public FSFontMetrics getFSFontMetrics(FontContext context, FSFont font, String string) {
@@ -70,12 +60,7 @@ public class ITextTextRenderer implements TextRenderer {
 
     public int getWidth(FontContext context, FSFont font, String string) {
         BaseFont bf = ((ITextFSFont)font).getFontDescription().getFont();
-        float result = bf.getWidthPoint(string, font.getSize2D());
-        if (result - Math.floor(result) < TEXT_MEASURING_DELTA) {
-            return (int)result;
-        } else {
-            return (int)Math.ceil(result); 
-        }
+        return (int)Math.ceil(bf.getWidthPoint(string, font.getSize2D()));
     }
 
     public void setFontScale(float scale) {
@@ -93,21 +78,5 @@ public class ITextTextRenderer implements TextRenderer {
     }
 
     public void setSmoothingLevel(int level) {
-    }
-
-    public Rectangle getGlyphBounds(OutputDevice outputDevice, FSFont font, FSGlyphVector fsGlyphVector, int index, float x, float y) {
-        throw new UnsupportedOperationException();
-    }
-
-    public float[] getGlyphPositions(OutputDevice outputDevice, FSFont font, FSGlyphVector fsGlyphVector) {
-        throw new UnsupportedOperationException();
-    }
-
-    public FSGlyphVector getGlyphVector(OutputDevice outputDevice, FSFont font, String string) {
-        throw new UnsupportedOperationException();
-    }
-
-    public void drawGlyphVector(OutputDevice outputDevice, FSGlyphVector vector, float x, float y) {
-        throw new UnsupportedOperationException();
     }
 }

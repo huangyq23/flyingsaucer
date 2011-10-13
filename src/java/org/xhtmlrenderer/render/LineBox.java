@@ -20,20 +20,17 @@
  */
 package org.xhtmlrenderer.render;
 
+import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.Shape;
-import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 
 import org.w3c.dom.Element;
 import org.xhtmlrenderer.css.constants.CSSName;
 import org.xhtmlrenderer.css.constants.IdentValue;
-import org.xhtmlrenderer.css.parser.FSRGBColor;
 import org.xhtmlrenderer.css.style.CalculatedStyle;
 import org.xhtmlrenderer.css.style.CssContext;
 import org.xhtmlrenderer.layout.BoxCollector;
@@ -42,7 +39,7 @@ import org.xhtmlrenderer.layout.InlinePaintable;
 import org.xhtmlrenderer.layout.Layer;
 import org.xhtmlrenderer.layout.LayoutContext;
 import org.xhtmlrenderer.layout.PaintingInfo;
-import org.xhtmlrenderer.util.XRRuntimeException;
+import org.xhtmlrenderer.util.XRLog;
 
 /**
  * A line box contains a single line of text (or other inline content).  It
@@ -50,9 +47,6 @@ import org.xhtmlrenderer.util.XRRuntimeException;
  * added while laying out the line.
  */
 public class LineBox extends Box implements InlinePaintable {
-    private static final float JUSTIFY_NON_SPACE_SHARE = 0.20f;
-    private static final float JUSTIFY_SPACE_SHARE = 1 - JUSTIFY_NON_SPACE_SHARE;
-    
     private boolean _containsContent;
     private boolean _containsBlockLevelContent;
     
@@ -72,9 +66,7 @@ public class LineBox extends Box implements InlinePaintable {
     private int _contentStart;
     
     private int _baseline;
-    
-    private JustificationInfo _justificationInfo;
-    
+
     public LineBox() {
     }
     
@@ -100,6 +92,14 @@ public class LineBox extends Box implements InlinePaintable {
         return "LineBox: (" + getAbsX() + "," + getAbsY() + ")->(" + getWidth() + "," + getHeight() + ")";
     }
 
+    public double getAbsTop() {
+        return getAbsY();
+    }
+
+    public double getAbsBottom() {
+        return getAbsY() + getHeight();
+    }
+
     public Rectangle getMarginEdge(CssContext cssCtx, int tx, int ty) {
         Rectangle result = new Rectangle(getX(), getY(), getContentWidth(), getHeight());
         result.translate(tx, ty);
@@ -116,8 +116,7 @@ public class LineBox extends Box implements InlinePaintable {
             int totalLineWidth = InlineBoxing.positionHorizontally(c, this, 0);
             setContentWidth(totalLineWidth);
             calcChildLocations();
-            align(true);
-            calcPaintingInfo(c, false);
+            align();
         }
         
         if (_textDecorations != null) {
@@ -125,7 +124,7 @@ public class LineBox extends Box implements InlinePaintable {
         }
         
         if (c.debugDrawLineBoxes()) {
-            c.getOutputDevice().drawDebugOutline(c, this, FSRGBColor.GREEN);
+            c.getOutputDevice().drawDebugOutline(c, this, Color.GREEN);
         }
     }
     
@@ -169,17 +168,16 @@ public class LineBox extends Box implements InlinePaintable {
         _containsContent = containsContent;
     }
     
-    public void align(boolean dynamic) {
+    public void align() {
         IdentValue align = getParent().getStyle().getIdent(CSSName.TEXT_ALIGN);
+        
+        // TODO implement text-align: justify
         
         int calcX = 0;
         
         if (align == IdentValue.LEFT || align == IdentValue.JUSTIFY) {
             int floatDistance = getFloatDistances().getLeftFloatDistance();
             calcX = getContentStart() + floatDistance;
-            if (align == IdentValue.JUSTIFY && dynamic) {
-                justify();
-            }
         } else if (align == IdentValue.CENTER) {
             int leftFloatDistance = getFloatDistances().getLeftFloatDistance();
             int rightFloatDistance = getFloatDistances().getRightFloatDistance();
@@ -198,84 +196,6 @@ public class LineBox extends Box implements InlinePaintable {
             calcCanvasLocation();
             calcChildLocations();
         }
-    }
-    
-    public void justify() {
-        if (! isLastLineWithContent()) {
-            int leftFloatDistance = getFloatDistances().getLeftFloatDistance();
-            int rightFloatDistance = getFloatDistances().getRightFloatDistance();
-            
-            int available = getParent().getContentWidth() - 
-                leftFloatDistance - rightFloatDistance - getContentStart(); 
-            
-            if (available > getContentWidth()) {
-                int toAdd = available - getContentWidth();
-                
-                CharCounts counts = countJustifiableChars();
-                
-                JustificationInfo info = new JustificationInfo();
-                if (! getParent().getStyle().isIdent(CSSName.LETTER_SPACING, IdentValue.NORMAL)) {
-                    info.setNonSpaceAdjust(0.0f);
-                    info.setSpaceAdjust((float)toAdd / counts.getSpaceCount());
-                } else {
-                    if (counts.getNonSpaceCount() > 1) {
-                        info.setNonSpaceAdjust((float)toAdd * JUSTIFY_NON_SPACE_SHARE / (counts.getNonSpaceCount()-1));
-                    } else {
-                        info.setNonSpaceAdjust(0.0f);
-                    }
-                    
-                    if (counts.getSpaceCount() > 0) {
-                        info.setSpaceAdjust((float)toAdd * JUSTIFY_SPACE_SHARE / counts.getSpaceCount());
-                    } else {
-                        info.setSpaceAdjust(0.0f);
-                    }
-                }
-                
-                adjustChildren(info);
-                
-                setJustificationInfo(info);
-            }
-        }
-    }
-    
-    private void adjustChildren(JustificationInfo info) {
-        float adjust = 0.0f;
-        for (Iterator i = getChildIterator(); i.hasNext(); ) {
-            Box b = (Box)i.next();
-            b.setX(b.getX() + Math.round(adjust));
-            
-            if (b instanceof InlineLayoutBox) {
-                adjust += ((InlineLayoutBox)b).adjustHorizontalPosition(info, adjust);
-            }
-        }
-        
-        calcChildLocations();
-    }
-    
-    private boolean isLastLineWithContent() {
-        LineBox current = (LineBox)getNextSibling();
-        while (current != null) {
-            if (current.isContainsContent()) {
-                return false;
-            } else {
-                current = (LineBox)current.getNextSibling();
-            }
-        }
-        
-        return true;
-    }
-    
-    private CharCounts countJustifiableChars() {
-        CharCounts result = new CharCounts();
-        
-        for (Iterator i = getChildIterator(); i.hasNext(); ) {
-            Box b = (Box)i.next();
-            if (b instanceof InlineLayoutBox) {
-                ((InlineLayoutBox)b).countJustifiableChars(result);
-            }
-        }
-        
-        return result;
     }
     
 	public FloatDistances getFloatDistances() {
@@ -308,8 +228,7 @@ public class LineBox extends Box implements InlinePaintable {
         Box parent = getParent();
         Rectangle result = null;
         if (parent.getStyle().isIdent(
-                CSSName.FS_TEXT_DECORATION_EXTENT, IdentValue.BLOCK) || 
-                    getJustificationInfo() != null) {
+                CSSName.FS_TEXT_DECORATION_EXTENT, IdentValue.BLOCK)) {
             result = new Rectangle(
                     getAbsX(), getAbsY() + _paintingTop, 
                     parent.getAbsX() + parent.getTx() + parent.getContentWidth() - getAbsX(), 
@@ -404,7 +323,7 @@ public class LineBox extends Box implements InlinePaintable {
     public void calcCanvasLocation() {
         Box parent = getParent();
         if (parent == null) {
-            throw new XRRuntimeException("calcCanvasLocation() called with no parent");
+            XRLog.layout(Level.WARNING, "calcCanvasLocation() called with no parent");
         }
         setAbsX(parent.getAbsX() + parent.getTx() + getX());
         setAbsY(parent.getAbsY() + parent.getTy() + getY());        
@@ -481,7 +400,7 @@ public class LineBox extends Box implements InlinePaintable {
         }
     }    
     
-    public Box find(CssContext cssCtx, int absX, int absY, boolean findAnonymous) {
+    public Box find(CssContext cssCtx, int absX, int absY) {
         PaintingInfo pI = getPaintingInfo();
         if (pI !=null && ! pI.getAggregateBounds().contains(absX, absY)) {
             return null;
@@ -490,7 +409,7 @@ public class LineBox extends Box implements InlinePaintable {
         Box result = null;
         for (int i = 0; i < getChildCount(); i++) {
             Box child = getChild(i);
-            result = child.find(cssCtx, absX, absY, findAnonymous);
+            result = child.find(cssCtx, absX, absY);
             if (result != null) {
                 return result;
             }
@@ -554,140 +473,12 @@ public class LineBox extends Box implements InlinePaintable {
         
         return false;
     }
-    
-    public void clearSelection(List modified) {
-        for (Iterator i = getNonFlowContent().iterator(); i.hasNext(); ) {
-            Box b = (Box)i.next();
-            b.clearSelection(modified);
-        }
-        
-        super.clearSelection(modified);
-    }
-    
-    public void selectAll() {
-        for (Iterator i = getNonFlowContent().iterator(); i.hasNext(); ) {
-            BlockBox box = (BlockBox)i.next();
-            box.selectAll();
-        }
-        
-        super.selectAll();
-    }
-    
-    public void collectText(RenderingContext c, StringBuffer buffer) throws IOException {
-        for (Iterator i = getNonFlowContent().iterator(); i.hasNext(); ) {
-            Box b = (Box)i.next();
-            b.collectText(c, buffer);
-        }
-        if (isContainsDynamicFunction()) {
-            lookForDynamicFunctions(c);
-        }
-        super.collectText(c, buffer);
-    }
-    
-    public void exportText(RenderingContext c, Writer writer) throws IOException {
-        int baselinePos = getAbsY() + getBaseline();
-        if (baselinePos >= c.getPage().getBottom() && isInDocumentFlow()) {
-            exportPageBoxText(c, writer, baselinePos);
-        }
-        
-        for (Iterator i = getNonFlowContent().iterator(); i.hasNext(); ) {
-            Box b = (Box)i.next();
-            b.exportText(c, writer);
-        }
-        
-        if (isContainsContent()) {
-            StringBuffer result = new StringBuffer();
-            collectText(c, result);
-            writer.write(result.toString().trim());
-            writer.write(LINE_SEPARATOR);
-        }
-    }
-    
-    public void analyzePageBreaks(LayoutContext c, ContentLimitContainer container) {
-        container.updateTop(c, getAbsY());
-        container.updateBottom(c, getAbsY() + getHeight());
-    }
-    
-    public void checkPagePosition(LayoutContext c, boolean alwaysBreak) {
-        if (! c.isPageBreaksAllowed()) {
-            return;
-        }
-        
-        PageBox pageBox = c.getRootLayer().getFirstPage(c, this);
-        if (pageBox != null) {
-            boolean needsPageBreak = 
-                alwaysBreak || getAbsY() + getHeight() >= pageBox.getBottom() - c.getExtraSpaceBottom();
-                
-           if (needsPageBreak) {
-               forcePageBreakBefore(c, IdentValue.ALWAYS, false);
-               calcCanvasLocation();
-           } else if (pageBox.getTop() + c.getExtraSpaceTop() > getAbsY()) {
-               int diff = pageBox.getTop() + c.getExtraSpaceTop() - getAbsY();
-               
-               setY(getY() + diff);
-               calcCanvasLocation();
-           }
-        }
-    }
-
-    public JustificationInfo getJustificationInfo() {
-        return _justificationInfo;
-    }
-
-    private void setJustificationInfo(JustificationInfo justificationInfo) {
-        _justificationInfo = justificationInfo;
-    }
 }
 
 /*
- * $Id$
+ * $Id: LineBox.java,v 1.65 2007-05-16 15:44:37 peterbrant Exp $
  *
- * $Log$
- * Revision 1.73  2009/05/09 14:18:24  pdoubleya
- * FindBugs: use of ref that is provably null
- *
- * Revision 1.72  2008/07/27 00:21:47  peterbrant
- * Implement CMYK color support for PDF output, starting with patch from Mykola Gurov / Banish java.awt.Color from FS core layout classes
- *
- * Revision 1.71  2008/02/11 17:52:25  peterbrant
- * Fix divide by zero error in justification algorithm
- *
- * Revision 1.70  2008/01/26 01:53:44  peterbrant
- * Implement partial support for leader and target-counter (patch from Karl Tauber)
- *
- * Revision 1.69  2007/08/30 23:14:28  peterbrant
- * Implement text-align: justify
- *
- * Revision 1.68  2007/08/29 22:18:18  peterbrant
- * Experiment with text justification
- *
- * Revision 1.67  2007/08/28 22:31:26  peterbrant
- * Implement widows and orphans properties
- *
- * Revision 1.66  2007/08/19 22:22:49  peterbrant
- * Merge R8pbrant changes to HEAD
- *
- * Revision 1.65.2.6  2007/08/16 22:38:47  peterbrant
- * Further progress on table pagination
- *
- * Revision 1.65.2.5  2007/08/15 21:29:30  peterbrant
- * Initial draft of support for running headers and footers on tables
- *
- * Revision 1.65.2.4  2007/08/14 16:10:30  peterbrant
- * Remove obsolete code
- *
- * Revision 1.65.2.3  2007/08/13 22:41:13  peterbrant
- * First pass at exporting the render tree as text
- *
- * Revision 1.65.2.2  2007/08/07 17:06:32  peterbrant
- * Implement named pages / Implement page-break-before/after: left/right / Experiment with efficient selection
- *
- * Revision 1.65.2.1  2007/07/30 00:43:15  peterbrant
- * Start implementing text selection and copying
- *
- * Revision 1.65  2007/05/16 15:44:37  peterbrant
- * inline-block/inline-table elements that take up no space should not be considered visible content
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.64  2007/05/10 00:43:55  peterbrant
  * Empty inline elements should generate boxes and participate in line height calculations
  *

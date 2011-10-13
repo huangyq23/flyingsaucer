@@ -66,7 +66,7 @@ public class BrowserStartup {
     /**
      * Description of the Field
      */
-    public static final Logger logger = Logger.getLogger("app.browser");
+    public static Logger logger = Logger.getLogger("app.browser");
 
     /**
      * Constructor for the BrowserStartup object
@@ -126,7 +126,7 @@ public class BrowserStartup {
         panel.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
         frame.getContentPane().add(panel.status, BorderLayout.PAGE_END);
         frame.pack();
-        frame.setSize(1024, 768);
+        frame.setSize(700, 600);
     }
 
     /**
@@ -194,18 +194,9 @@ public class BrowserStartup {
 }
 
 /*
-* $Id$
+* $Id: BrowserStartup.java,v 1.22 2007-07-13 13:32:31 pdoubleya Exp $
 *
-* $Log$
-* Revision 1.24  2009/05/15 16:28:14  pdoubleya
-* Integrate async image loading, starting point is DelegatingUserAgentCallback. AWT images are now always buffered, but screen-compatible. RootPanel now supports a repaint mechanism, with optional layout, with some attempt to control how often one or the other actually takes place when many images have been loaded.
-*
-* Revision 1.23  2009/05/09 14:15:52  pdoubleya
-* FindBugs: field can be final
-*
-* Revision 1.22  2007/07/13 13:32:31  pdoubleya
-* Add webstart entry point for browser with no URL or File/open option. Move Zoom to menu entry, add warning on first zoom. Move preview to menu entry. Reorganize launch method a little to allow for multiple entry points.
-*
+* $Log: not supported by cvs2svn $
 * Revision 1.21  2006/10/04 08:06:26  pdoubleya
 * Made reference to JGoodies via class name, not via class, in case not available; catch Throwable in that case as class not found is an error, not an exception.
 *

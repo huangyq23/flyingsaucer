@@ -66,6 +66,8 @@
         <antcall target="jar.core"/>
         <antcall target="jar.browser"/>
         <antcall target="jar.about"/>
+        <antcall target="jar.photogallery"/>
+        <antcall target="jar.filebrowser"/>
     </target>
 
     <!-- =====================================================
@@ -270,15 +272,9 @@
 <!-- ========== this is the CVS log. Don't delete! ========== -->
 
 <!-- 
-$Id$
+$Id: buildn.xml,v 1.5 2005-11-03 22:35:03 tobega Exp $
 
-$Log$
-Revision 1.6  2009/04/17 16:23:03  pdoubleya
-update demos page to include all demos, update ant dist and upload to have separate demos/jnlp targets.
-
-Revision 1.5  2005/11/03 22:35:03  tobega
-Fix from Eric Neuhauser
-
+$Log: not supported by cvs2svn $
 Revision 1.4  2005/06/26 15:48:11  tobega
 Converted to almost standard html4 default css, which shook out a bug: position should not inherit
 

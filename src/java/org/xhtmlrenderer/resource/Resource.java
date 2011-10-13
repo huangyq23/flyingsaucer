@@ -31,11 +31,8 @@ public interface Resource {
 }
 
 /*
- * $Id$
+ * $Id: Resource.java,v 1.1 2005-02-03 20:39:35 pdoubleya Exp $
  *
- * $Log$
- * Revision 1.1  2005/02/03 20:39:35  pdoubleya
- * Added to CVS.
- *
+ * $Log: not supported by cvs2svn $
  *
  */

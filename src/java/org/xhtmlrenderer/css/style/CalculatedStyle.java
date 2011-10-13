@@ -20,33 +20,23 @@
  */
 package org.xhtmlrenderer.css.style;
 
-import java.awt.Cursor;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.logging.Level;
-
 import org.xhtmlrenderer.css.constants.CSSName;
 import org.xhtmlrenderer.css.constants.IdentValue;
 import org.xhtmlrenderer.css.newmatch.CascadedStyle;
-import org.xhtmlrenderer.css.parser.FSColor;
-import org.xhtmlrenderer.css.parser.FSFunction;
-import org.xhtmlrenderer.css.parser.FSRGBColor;
 import org.xhtmlrenderer.css.parser.PropertyValue;
 import org.xhtmlrenderer.css.parser.property.PrimitivePropertyBuilders;
 import org.xhtmlrenderer.css.sheet.PropertyDeclaration;
-import org.xhtmlrenderer.css.style.derived.BorderPropertySet;
-import org.xhtmlrenderer.css.style.derived.DerivedValueFactory;
-import org.xhtmlrenderer.css.style.derived.FunctionValue;
-import org.xhtmlrenderer.css.style.derived.LengthValue;
-import org.xhtmlrenderer.css.style.derived.ListValue;
-import org.xhtmlrenderer.css.style.derived.NumberValue;
-import org.xhtmlrenderer.css.style.derived.RectPropertySet;
+import org.xhtmlrenderer.css.style.derived.*;
 import org.xhtmlrenderer.css.value.FontSpecification;
 import org.xhtmlrenderer.render.FSFont;
 import org.xhtmlrenderer.render.FSFontMetrics;
 import org.xhtmlrenderer.util.XRLog;
 import org.xhtmlrenderer.util.XRRuntimeException;
+
+import java.awt.Color;
+import java.awt.Cursor;
+import java.util.*;
+import java.util.logging.Level;
 
 
 /**
@@ -86,12 +76,10 @@ public class CalculatedStyle {
     private boolean _paddingAllowed = true;
     private boolean _bordersAllowed = true;
 
-    private BackgroundSize _backgroundSize;
-
     /**
      * Cache child styles of this style that have the same cascaded properties
      */
-    private final java.util.HashMap _childCache = new java.util.HashMap();
+    private java.util.HashMap _childCache = new java.util.HashMap();
     /*private java.util.HashMap _childCache = new java.util.LinkedHashMap(5, 0.75f, true) {
         private static final int MAX_ENTRIES = 10;
 
@@ -104,7 +92,7 @@ public class CalculatedStyle {
      * Our main array of property values defined in this style, keyed
      * by the CSSName assigned ID.
      */
-    private final FSDerivedValue[] _derivedValuesById;
+    private FSDerivedValue[] _derivedValuesById;
 
     /**
      * The derived Font for this style
@@ -211,10 +199,10 @@ public class CalculatedStyle {
         return genStyleKey();
     }
 
-    public FSColor asColor(CSSName cssName) {
+    public Color asColor(CSSName cssName) {
         FSDerivedValue prop = valueByName(cssName);
         if (prop == IdentValue.TRANSPARENT) {
-            return FSRGBColor.TRANSPARENT;
+            return ColorValue.COLOR_TRANSPARENT;
         } else {
             return prop.asColor();
         }
@@ -230,12 +218,6 @@ public class CalculatedStyle {
 
     public String[] asStringArray(CSSName cssName) {
         return valueByName(cssName).asStringArray();
-    }
-
-    public void setDefaultValue(CSSName cssName, FSDerivedValue fsDerivedValue) {
-        if (_derivedValuesById[cssName.FS_ID] == null) {
-            _derivedValuesById[cssName.FS_ID] = fsDerivedValue;
-        }
     }
 
     // TODO: doc
@@ -280,8 +262,8 @@ public class CalculatedStyle {
      *
      * @return The color value
      */
-    public FSColor getColor() {
-        return asColor(CSSName.COLOR);
+    public Color getColor() {
+        return valueByName(CSSName.COLOR).asColor();
     }
 
     /**
@@ -291,46 +273,13 @@ public class CalculatedStyle {
      *
      * @return The backgroundColor value
      */
-    public FSColor getBackgroundColor() {
+    public Color getBackgroundColor() {
         FSDerivedValue prop = valueByName(CSSName.BACKGROUND_COLOR);
         if (prop == IdentValue.TRANSPARENT) {
             return null;
         } else {
             return asColor(CSSName.BACKGROUND_COLOR);
         }
-    }
-
-    public BackgroundSize getBackgroundSize() {
-        if (_backgroundSize == null) {
-            _backgroundSize = createBackgroundSize();
-        }
-
-        return _backgroundSize;
-    }
-
-    private BackgroundSize createBackgroundSize() {
-        FSDerivedValue value = valueByName(CSSName.BACKGROUND_SIZE);
-        if (value instanceof IdentValue) {
-            IdentValue ident = (IdentValue)value;
-            if (ident == IdentValue.COVER) {
-                return new BackgroundSize(false, true, false);
-            } else if (ident == IdentValue.CONTAIN) {
-                return new BackgroundSize(true, false, false);
-            }
-        } else {
-            ListValue valueList = (ListValue)value;
-            List values = valueList.getValues();
-            boolean firstAuto = ((PropertyValue)values.get(0)).getIdentValue() == IdentValue.AUTO;
-            boolean secondAuto = ((PropertyValue)values.get(1)).getIdentValue() == IdentValue.AUTO;
-
-            if (firstAuto && secondAuto) {
-                return new BackgroundSize(false, false, true);
-            } else {
-                return new BackgroundSize((PropertyValue)values.get(0), (PropertyValue)values.get(1));
-            }
-        }
-
-        throw new RuntimeException("internal error");
     }
 
     public BackgroundPosition getBackgroundPosition() {
@@ -363,7 +312,7 @@ public class CalculatedStyle {
 
     public BorderPropertySet getBorder(CssContext ctx) {
         if (! _bordersAllowed) {
-            return BorderPropertySet.EMPTY_BORDER;
+            return BorderPropertySet.ALL_ZEROS;
         } else {
             BorderPropertySet b = getBorderProperty(this, ctx);
             return b;
@@ -642,7 +591,7 @@ public class CalculatedStyle {
 
     private static RectPropertySet getPaddingProperty(CalculatedStyle style,
                                                       CSSName shorthandProp,
-                                                      CSSName.CSSSideProperties sides,
+                                                      CSSName[] sides,
                                                       float cbWidth,
                                                       CssContext ctx,
                                                       boolean useCache) {
@@ -652,13 +601,13 @@ public class CalculatedStyle {
             if (style._padding == null) {
                 RectPropertySet result = newRectInstance(style, shorthandProp, sides, cbWidth, ctx);
                 boolean allZeros = result.isAllZeros();
-
+                
                 if (allZeros) {
                     result = RectPropertySet.ALL_ZEROS;
                 }
-
+                
                 style._padding = result;
-
+                
                 if (! allZeros && style._padding.hasNegativeValues()) {
                     style._padding.resetNegativeValues();
                 }
@@ -670,7 +619,7 @@ public class CalculatedStyle {
 
     private static RectPropertySet getMarginProperty(CalculatedStyle style,
                                                      CSSName shorthandProp,
-                                                     CSSName.CSSSideProperties sides,
+                                                     CSSName[] sides,
                                                      float cbWidth,
                                                      CssContext ctx,
                                                      boolean useCache) {
@@ -688,10 +637,10 @@ public class CalculatedStyle {
             return style._margin;
         }
     }
-
+    
     private static RectPropertySet newRectInstance(CalculatedStyle style,
                                                    CSSName shorthand,
-                                                   CSSName.CSSSideProperties sides,
+                                                   CSSName[] sides,
                                                    float cbWidth,
                                                    CssContext ctx) {
         RectPropertySet rect;
@@ -707,14 +656,14 @@ public class CalculatedStyle {
                                                        CssContext ctx) {
         if (style._border == null) {
             BorderPropertySet result = BorderPropertySet.newInstance(style, ctx);
-
+            
             boolean allZeros = result.isAllZeros();
-            if (allZeros && ! result.hasHidden()) {
-                result = BorderPropertySet.EMPTY_BORDER;
+            if (allZeros) {
+                result = BorderPropertySet.ALL_ZEROS;
             }
-
+            
             style._border = result;
-
+            
             if (! allZeros && style._border.hasNegativeValues()) {
                 style._border.resetNegativeValues();
             }
@@ -766,8 +715,8 @@ public class CalculatedStyle {
         return _FSFontMetrics;
     }
 
-    public IdentValue getWordWrap() {
-        return getIdent(CSSName.WORD_WRAP);
+    public boolean isAlternateFlow() {
+        return ! getStringProperty(CSSName.FS_MOVE_TO_FLOW).equals("none");
     }
 
     public boolean isClearLeft() {
@@ -798,7 +747,7 @@ public class CalculatedStyle {
 
     public boolean isInline() {
         return isIdent(CSSName.DISPLAY, IdentValue.INLINE) &&
-                ! (isFloated() || isAbsolute() || isFixed() || isRunning());
+                ! (isFloated() || isAbsolute() || isFixed());
     }
 
     public boolean isInlineBlock() {
@@ -865,7 +814,7 @@ public class CalculatedStyle {
     }
 
     public boolean isLayedOutInInlineContext() {
-        if (isFloated() || isAbsolute() || isFixed() || isRunning()) {
+        if (isFloated() || isAbsolute() || isFixed()) {
             return true;
         } else {
             IdentValue display = getIdent(CSSName.DISPLAY);
@@ -915,20 +864,8 @@ public class CalculatedStyle {
         return isIdent(CSSName.WIDTH, IdentValue.AUTO);
     }
 
-    public boolean isAbsoluteWidth() {
-        return valueByName(CSSName.WIDTH).hasAbsoluteUnit();
-    }
-
     public boolean isAutoHeight() {
         return isIdent(CSSName.HEIGHT, IdentValue.AUTO);
-    }
-
-    public boolean isAutoLeftMargin() {
-        return isIdent(CSSName.MARGIN_LEFT, IdentValue.AUTO);
-    }
-
-    public boolean isAutoRightMargin() {
-        return isIdent(CSSName.MARGIN_RIGHT, IdentValue.AUTO);
     }
 
     public boolean isAutoZIndex() {
@@ -936,56 +873,28 @@ public class CalculatedStyle {
     }
 
     public boolean establishesBFC() {
-        FSDerivedValue value = valueByName(CSSName.POSITION);
+        IdentValue display = getIdent(CSSName.DISPLAY);
+        IdentValue position = getIdent(CSSName.POSITION);
 
-        if (value instanceof FunctionValue) {  // running(header)
-            return false;
-        } else {
-            IdentValue display = getIdent(CSSName.DISPLAY);
-            IdentValue position = (IdentValue)value;
-
-            return isFloated() ||
-                    position == IdentValue.ABSOLUTE || position == IdentValue.FIXED ||
-                    display == IdentValue.INLINE_BLOCK || display == IdentValue.TABLE_CELL ||
-                    ! isIdent(CSSName.OVERFLOW, IdentValue.VISIBLE);
-        }
+        return isFloated() ||
+                position == IdentValue.ABSOLUTE || position == IdentValue.FIXED ||
+                display == IdentValue.INLINE_BLOCK || display == IdentValue.TABLE_CELL ||
+                ! isIdent(CSSName.OVERFLOW, IdentValue.VISIBLE);
     }
 
     public boolean requiresLayer() {
-        FSDerivedValue value = valueByName(CSSName.POSITION);
+        IdentValue position = getIdent(CSSName.POSITION);
 
-        if (value instanceof FunctionValue) {  // running(header)
-            return false;
-        } else {
-            IdentValue position = getIdent(CSSName.POSITION);
-
-            if (position == IdentValue.ABSOLUTE ||
-                    position == IdentValue.RELATIVE || position == IdentValue.FIXED) {
-                return true;
-            }
-
-            IdentValue overflow = getIdent(CSSName.OVERFLOW);
-            if ((overflow == IdentValue.SCROLL || overflow == IdentValue.AUTO) &&
-                    isOverflowApplies()) {
-                return true;
-            }
-
-            return false;
+        if (position == IdentValue.ABSOLUTE ||
+                position == IdentValue.RELATIVE || position == IdentValue.FIXED) {
+            return true;
         }
-    }
 
-    public boolean isRunning() {
-        FSDerivedValue value = valueByName(CSSName.POSITION);
-        return value instanceof FunctionValue;
-    }
+        if (! isIdent(CSSName.OVERFLOW, IdentValue.VISIBLE) && isOverflowApplies()) {
+            return true;
+        }
 
-    public String getRunningName() {
-        FunctionValue value = (FunctionValue)valueByName(CSSName.POSITION);
-        FSFunction function = value.getFunction();
-
-        PropertyValue param = (PropertyValue)function.getParameters().get(0);
-
-        return param.getStringValue();
+        return false;
     }
 
     public boolean isOverflowApplies() {
@@ -993,10 +902,6 @@ public class CalculatedStyle {
         return display == IdentValue.BLOCK || display == IdentValue.LIST_ITEM ||
                 display == IdentValue.TABLE || display == IdentValue.INLINE_BLOCK ||
                 display == IdentValue.TABLE_CELL;
-    }
-
-    public boolean isOverflowVisible() {
-        return valueByName(CSSName.OVERFLOW) == IdentValue.VISIBLE;
     }
 
     public boolean isHorizontalBackgroundRepeat() {
@@ -1067,16 +972,12 @@ public class CalculatedStyle {
     }
 
     public boolean isNonFlowContent() {
-        return isFloated() || isAbsolute() || isFixed() || isRunning();
+        return isFloated() || isAbsolute() || isFixed();
     }
 
     public boolean isMayCollapseMarginsWithChildren() {
         return isIdent(CSSName.OVERFLOW, IdentValue.VISIBLE) &&
                 ! (isFloated() || isAbsolute() || isFixed() || isInlineBlock());
-    }
-
-    public boolean isAbsFixedOrInlineBlockEquiv() {
-        return isAbsolute() || isFixed() || isInlineBlock() || isInlineTable();
     }
 
     public boolean isMaxWidthNone() {
@@ -1104,7 +1005,7 @@ public class CalculatedStyle {
     }
 
     public boolean isCollapseBorders() {
-        return isIdent(CSSName.BORDER_COLLAPSE, IdentValue.COLLAPSE) && ! isPaginateTable();
+        return isIdent(CSSName.BORDER_COLLAPSE, IdentValue.COLLAPSE);
     }
 
     public int getBorderHSpacing(CssContext c) {
@@ -1210,84 +1111,12 @@ public class CalculatedStyle {
         return null;
     }
 
-    public boolean isPaginateTable() {
-        return isIdent(CSSName.FS_TABLE_PAGINATE, IdentValue.PAGINATE);
-    }
-
-    public boolean isTextJustify() {
-        return isIdent(CSSName.TEXT_ALIGN, IdentValue.JUSTIFY) &&
-                ! (isIdent(CSSName.WHITE_SPACE, IdentValue.PRE) ||
-                        isIdent(CSSName.WHITE_SPACE, IdentValue.PRE_LINE));
-    }
-
-    public boolean isListMarkerInside() {
-        return isIdent(CSSName.LIST_STYLE_POSITION, IdentValue.INSIDE);
-    }
-
-    public boolean isKeepWithInline() {
-        return isIdent(CSSName.FS_KEEP_WITH_INLINE, IdentValue.KEEP);
-    }
-
 }// end class
 
 /*
- * $Id$
+ * $Id: CalculatedStyle.java,v 1.97 2007-06-26 18:24:52 peterbrant Exp $
  *
- * $Log$
- * Revision 1.110  2010/01/12 14:33:27  peterbrant
- * Ignore auto margins when calculating table min/max width.  Also, when deciding whether or not to proceed with the auto margin calculation for a table,  make sure we compare consistently with how the table min width is actually set.
- *
- * Revision 1.109  2009/11/08 23:52:48  peterbrant
- * Treat percentage widths as auto when calculating min/max widths
- *
- * Revision 1.108  2009/05/09 14:17:41  pdoubleya
- * FindBugs: static field should not be mutable; use inner class to declare CSS 4-side properties
- *
- * Revision 1.107  2009/04/25 10:48:42  pdoubleya
- * Small opt, don't pull Ident unless needed, patch from Peter Fassev issue #263
- *
- * Revision 1.106  2008/12/14 19:27:16  peterbrant
- * Always treat running elements as blocks
- *
- * Revision 1.105  2008/12/14 13:53:32  peterbrant
- * Implement -fs-keep-with-inline: keep property that instructs FS to try to avoid breaking a box so that only borders and padding appear on a page
- *
- * Revision 1.104  2008/09/06 18:21:50  peterbrant
- * Need to account for list-marker-position: inside when calculating inline min/max widths
- *
- * Revision 1.103  2008/08/01 22:23:54  peterbrant
- * Fix various bugs related to collapsed table borders (one manifestation found by Olly Headey)
- *
- * Revision 1.102  2008/07/27 00:21:48  peterbrant
- * Implement CMYK color support for PDF output, starting with patch from Mykola Gurov / Banish java.awt.Color from FS core layout classes
- *
- * Revision 1.101  2008/07/14 11:12:37  peterbrant
- * Fix two bugs when -fs-table-paginate is paginate.  Block boxes in cells in a <thead> that were also early on the page could be positioned incorrectly.  Line boxes contained within inline-block or inline-table content in a paginated table were generally placed incorrectly.
- *
- * Revision 1.100  2007/08/29 22:18:19  peterbrant
- * Experiment with text justification
- *
- * Revision 1.99  2007/08/27 19:44:06  peterbrant
- * Rename -fs-table-pagination to -fs-table-paginate
- *
- * Revision 1.98  2007/08/19 22:22:53  peterbrant
- * Merge R8pbrant changes to HEAD
- *
- * Revision 1.97.2.4  2007/08/17 23:53:32  peterbrant
- * Get rid of layer hack for overflow: hidden
- *
- * Revision 1.97.2.3  2007/08/16 22:38:48  peterbrant
- * Further progress on table pagination
- *
- * Revision 1.97.2.2  2007/07/11 22:48:29  peterbrant
- * Further progress on running headers and footers
- *
- * Revision 1.97.2.1  2007/07/09 22:18:04  peterbrant
- * Begin work on running headers and footers and named pages
- *
- * Revision 1.97  2007/06/26 18:24:52  peterbrant
- * Improve calculation of line-height: normal / If leading is positive, recalculate to center glyph area in inline box
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.96  2007/06/19 22:31:46  peterbrant
  * Only cache all zeros margin, border, padding.  See discussion on bug #147 for more info.
  *

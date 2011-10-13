@@ -46,14 +46,9 @@ public class DocumentDiffGenerate {
 }
 
 /*
- * $Id$
+ * $Id: DocumentDiffGenerate.java,v 1.6 2007-05-20 23:25:32 peterbrant Exp $
  *
- * $Log$
- * Revision 1.6  2007/05/20 23:25:32  peterbrant
- * Various code cleanups (e.g. remove unused imports)
- *
- * Patch from Sean Bright
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.5  2005/04/22 17:09:47  joshy
  * minor changes to the document diff.
  * removed system.exit

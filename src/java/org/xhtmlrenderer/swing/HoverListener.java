@@ -20,7 +20,6 @@
 package org.xhtmlrenderer.swing;
 
 import java.awt.Rectangle;
-import java.awt.event.MouseEvent;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -29,26 +28,18 @@ import org.xhtmlrenderer.layout.LayoutContext;
 import org.xhtmlrenderer.layout.PaintingInfo;
 import org.xhtmlrenderer.render.Box;
 
-/**
- * A HoverListener is used to respond to a mouse hovering over a Box in a {@link org.xhtmlrenderer.swing.BasicPanel}.
- * In particular, it applies any :hover selectors that apply to the Box in question, and resets those styles
- * as the mouse exits the Box.
- */
-public class HoverListener extends DefaultFSMouseListener {
+public class HoverListener implements FSMouseListener {
     private Box _previouslyHovered;
 
-    /**
-     * {@inheritDoc}
-     */
+    public HoverListener() {
+    }
+
     public void onMouseOut(BasicPanel panel, Box box) {
         // Since we keep track of the most recently hovered element, we do not
         // need to explicitly handle mouseout events.  This way we only try to
         // restyle elements that were actually hoverable to begin with.
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void onMouseOver(BasicPanel panel, Box box) {
         LayoutContext c = panel.getLayoutContext();
 
@@ -104,7 +95,7 @@ public class HoverListener extends DefaultFSMouseListener {
                 }
             }
 
-            _previouslyHovered = target;
+            _previouslyHovered = box;
         }
 
         if (needRepaint) {
@@ -116,7 +107,9 @@ public class HoverListener extends DefaultFSMouseListener {
         }
     }
     
-    // look up the Element that corresponds to the Box we are hovering over
+    public void onMouseUp(BasicPanel panel, Box box) {
+    }
+
     private Element getHoveredElement(StyleReference style, Box ib) {
         if (ib == null) {
             return null;
@@ -136,9 +129,6 @@ public class HoverListener extends DefaultFSMouseListener {
         return element;
     }
 
-    /**
-     * Resets the tracking information related to the currently hovered element.
-     */
     public void reset() {
         _previouslyHovered = null;
     }

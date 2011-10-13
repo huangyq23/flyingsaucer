@@ -317,12 +317,9 @@ public class XMLResource extends AbstractResource {
 }
 
 /*
- * $Id$
+ * $Id: XMLResource.java,v 1.20 2007-05-15 22:01:42 peterbrant Exp $
  *
- * $Log$
- * Revision 1.20  2007/05/15 22:01:42  peterbrant
- * Remove unused code
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.19  2006/07/26 18:09:42  pdoubleya
  * Clean exception throws.
  *

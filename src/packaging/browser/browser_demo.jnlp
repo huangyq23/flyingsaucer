@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- TODO: replace codebase URL during build process -->
-<jnlp codebase="DEMO_CODEBASE/browser/" href="browser_demo.jnlp">
+<jnlp codebase="http://www.pdoubleya.com/projects/flyingsaucer/demo/r7/browser/" href="browser_demo.jnlp">
     <information>
         <title>XHTML Browser Demo</title>
         <vendor>Flying Saucer</vendor>
@@ -17,8 +16,10 @@
     <resources>
         <j2se version="1.4+"/>
         <jar href="browser.jar"/>
-        <jar href="../../../demo_repo/looks-2.1.4.jar"/>
+        <jar href="../looks-2.1.4.jar"/>
         <jar href="../core-renderer.jar"/>
+        <jar href="../itext-paulo-155.jar"/>
+        <jar href="../minium.jar"/>
     </resources>
-    <application-desc main-class="org.xhtmlrenderer.demo.browser.swing.BrowserSandboxLauncher"/>
+    <application-desc main-class="org.xhtmlrenderer.demo.browser.BrowserSandboxLauncher"/>
 </jnlp>

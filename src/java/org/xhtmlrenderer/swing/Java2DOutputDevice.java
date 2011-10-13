@@ -19,23 +19,12 @@
  */
 package org.xhtmlrenderer.swing;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.Stroke;
-import java.awt.RenderingHints.Key;
-import java.awt.font.GlyphVector;
-import java.awt.geom.Point2D;
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.RenderingHints.Key;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
-import org.xhtmlrenderer.css.parser.FSColor;
-import org.xhtmlrenderer.css.parser.FSRGBColor;
-import org.xhtmlrenderer.extend.FSGlyphVector;
 import org.xhtmlrenderer.extend.FSImage;
 import org.xhtmlrenderer.extend.OutputDevice;
 import org.xhtmlrenderer.extend.ReplacedElement;
@@ -43,9 +32,6 @@ import org.xhtmlrenderer.render.AbstractOutputDevice;
 import org.xhtmlrenderer.render.BlockBox;
 import org.xhtmlrenderer.render.BorderPainter;
 import org.xhtmlrenderer.render.FSFont;
-import org.xhtmlrenderer.render.InlineLayoutBox;
-import org.xhtmlrenderer.render.InlineText;
-import org.xhtmlrenderer.render.JustificationInfo;
 import org.xhtmlrenderer.render.RenderingContext;
 
 public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDevice {
@@ -58,95 +44,6 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
     public Java2DOutputDevice(BufferedImage outputImage) {
         this(outputImage.createGraphics());
     }
-    
-    
-    public void drawSelection(RenderingContext c, InlineText inlineText) {
-        if (inlineText.isSelected()) {
-            InlineLayoutBox iB = inlineText.getParent();
-            String text = inlineText.getSubstring();
-            if (text != null && text.length() > 0) {
-                FSFont font = iB.getStyle().getFSFont(c);
-                FSGlyphVector glyphVector = c.getTextRenderer().getGlyphVector(
-                        c.getOutputDevice(),
-                        font,
-                        inlineText.getSubstring());
-                
-                Rectangle start = c.getTextRenderer().getGlyphBounds(
-                        c.getOutputDevice(),
-                        font,
-                        glyphVector,
-                        inlineText.getSelectionStart(),
-                        iB.getAbsX() + inlineText.getX(),
-                        iB.getAbsY() + iB.getBaseline());
-                
-                Rectangle end = c.getTextRenderer().getGlyphBounds(
-                        c.getOutputDevice(),
-                        font,
-                        glyphVector,
-                        inlineText.getSelectionEnd() - 1,
-                        iB.getAbsX() + inlineText.getX(),
-                        iB.getAbsY() + iB.getBaseline());
-                Graphics2D graphics = getGraphics();
-                double scaleX = graphics.getTransform().getScaleX();
-                boolean allSelected = (text.length() == inlineText.getSelectionEnd()-inlineText.getSelectionStart());
-                int startX = (inlineText.getSelectionStart() == inlineText.getStart())?iB.getAbsX() + inlineText.getX():(int)Math.round(start.x/scaleX);
-                int endX = (allSelected)?startX+inlineText.getWidth():(int)Math.round((end.x + end.width)/scaleX);
-                _graphics.setColor(UIManager.getColor("TextArea.selectionBackground"));  // FIXME
-                fillRect(
-                        startX,
-                        iB.getAbsY(),
-                        endX - startX,
-                        iB.getHeight());
-                
-                _graphics.setColor(Color.WHITE); // FIXME
-                setFont(iB.getStyle().getFSFont(c));                
-                
-                drawSelectedText(c, inlineText, iB, glyphVector);
-            }
-        }
-    }
-
-    private void drawSelectedText(RenderingContext c, InlineText inlineText, InlineLayoutBox iB, FSGlyphVector glyphVector) {
-        GlyphVector vector = ((AWTFSGlyphVector)glyphVector).getGlyphVector();
-        
-        // We'd like to draw only the characters that are actually selected, but 
-        // unfortunately vector.getGlyphPixelBounds() doesn't give us accurate
-        // results with the result that text can appear to jump around as it's
-        // selected.  To work around this, we draw the whole string, but move
-        // non-selected characters offscreen.
-        for (int i = 0; i < inlineText.getSelectionStart(); i++) {
-            vector.setGlyphPosition(i, new Point2D.Float(-100000, -100000));
-        }
-        for (int i = inlineText.getSelectionEnd(); i < inlineText.getSubstring().length(); i++) {
-            vector.setGlyphPosition(i, new Point2D.Float(-100000, -100000));
-        }
-        if(inlineText.getParent().getStyle().isTextJustify()) {
-            JustificationInfo info = inlineText.getParent().getLineBox().getJustificationInfo();
-            if(info!=null) {
-                String string = inlineText.getSubstring();
-                float adjust = 0.0f;
-                for (int i = inlineText.getSelectionStart(); i < inlineText.getSelectionEnd(); i++) {
-                    char ch = string.charAt(i);
-                    if (i != 0) {
-                        Point2D point = vector.getGlyphPosition(i);
-                        vector.setGlyphPosition(
-                                i, new Point2D.Double(point.getX() + adjust, point.getY()));
-                    }
-                    if (ch == ' ' || ch == '\u00a0' || ch == '\u3000') {
-                        adjust += info.getSpaceAdjust();
-                    } else {
-                        adjust += info.getNonSpaceAdjust();
-                    }
-                }
-
-            }
-        }
-        c.getTextRenderer().drawGlyphVector(
-                c.getOutputDevice(),
-                glyphVector,
-                iB.getAbsX() + inlineText.getX(),
-                iB.getAbsY() + iB.getBaseline());
-    }    
 
     public void drawBorderLine(
             Rectangle bounds, int side, int lineWidth, boolean solid) {
@@ -163,13 +60,13 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
             drawLine(x + (int) (lineWidth / 2), y, x + (int) (lineWidth / 2), y + h - adj);
         } else if (side == BorderPainter.RIGHT) {
             int offset = (int)(lineWidth / 2);
-            if (lineWidth % 2 != 0) {
+            if (lineWidth % 2 == 1) {
                 offset += 1;
             }
             drawLine(x + w - offset, y, x + w - offset, y + h - adj);
         } else if (side == BorderPainter.BOTTOM) {
             int offset = (int)(lineWidth / 2);
-            if (lineWidth % 2 != 0) {
+            if (lineWidth % 2 == 1) {
                 offset += 1;
             }
             drawLine(x, y + h - offset, x + w - adj, y + h - offset);
@@ -180,10 +77,10 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
         ReplacedElement replaced = box.getReplacedElement();
         if (replaced instanceof SwingReplacedElement) {
             Rectangle contentBounds = box.getContentAreaEdge(box.getAbsX(), box.getAbsY(), c);
+            translate(contentBounds.x, contentBounds.y);
             JComponent component = ((SwingReplacedElement)box.getReplacedElement()).getJComponent();
-            RootPanel canvas = (RootPanel)c.getCanvas();
-            CellRendererPane pane = canvas.getCellRendererPane();
-            pane.paintComponent(_graphics, component, canvas, contentBounds.x,  contentBounds.y, contentBounds.width, contentBounds.height,true);
+            component.paint(_graphics);
+            translate(-contentBounds.x, -contentBounds.y);
         } else if (replaced instanceof ImageReplacedElement) {
             Image image = ((ImageReplacedElement)replaced).getImage();
             
@@ -193,13 +90,8 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
         }
     }
     
-    public void setColor(FSColor color) {
-        if (color instanceof FSRGBColor) {
-            FSRGBColor rgb = (FSRGBColor)color;
-            _graphics.setColor(new Color(rgb.getRed(), rgb.getGreen(), rgb.getBlue()));
-        } else {
-            throw new RuntimeException("internal error: unsupported color class " + color.getClass().getName());
-        }
+    public void setColor(Color color) {
+        _graphics.setColor(color);
     }
     
     protected void drawLine(int x1, int y1, int x2, int y2) {
@@ -268,13 +160,5 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
     
     public void drawImage(FSImage image, int x, int y) {
         _graphics.drawImage(((AWTFSImage)image).getImage(), x, y, null);
-    }
-    
-    public boolean isSupportsSelection() {
-        return true;
-    }
-    
-    public boolean isSupportsCMYKColors() {
-        return true;
     }
 }

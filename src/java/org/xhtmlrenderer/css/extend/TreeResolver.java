@@ -27,9 +27,6 @@ package org.xhtmlrenderer.css.extend;
  *         Elements are the "things" in the tree structure that can be matched by the matcher.
  */
 public interface TreeResolver {
-    // XXX Where should this go (used by parser, TreeResolver, and AttributeResolver
-    public static final String NO_NAMESPACE = "";
-    
     /**
      * returns the parent element of an element, or null if this was the root element
      */
@@ -49,27 +46,4 @@ public interface TreeResolver {
      * returns true if this element is the first child element of its parent
      */
     boolean isFirstChildElement(Object element);
-    
-    /**
-     * returns true if this element is the last child element of its parent
-     */
-    boolean isLastChildElement(Object element);
-    
-    /**
-     * Returns the index of the position of the submitted element among its element node siblings.
-     * @param element
-     * @return -1 in case of error, 0 indexed position otherwise
-     */
-    int getPositionOfElement(Object element);
-    
-    /**
-     * Returns <code>true</code> if <code>element</code> has the local name
-     * <code>name</code> and namespace URI <code>namespaceURI</code>.
-     * @param element
-     * @param namespaceURI The namespace to match, may be null to signify any
-     * namespace.  Use {@link #NO_NAMESPACE} to signify that <code>name</code> 
-     * should only match when there is no namespace defined on <code>element</code>.
-     * @param name The name to match, may not be null
-     */
-    boolean matchesElement(Object element, String namespaceURI, String name);
 }

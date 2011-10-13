@@ -33,7 +33,6 @@ import org.xhtmlrenderer.css.constants.CSSName;
 import org.xhtmlrenderer.css.extend.AttributeResolver;
 import org.xhtmlrenderer.css.extend.lib.DOMTreeResolver;
 import org.xhtmlrenderer.css.newmatch.CascadedStyle;
-import org.xhtmlrenderer.css.newmatch.PageInfo;
 import org.xhtmlrenderer.css.sheet.PropertyDeclaration;
 import org.xhtmlrenderer.css.sheet.Stylesheet;
 import org.xhtmlrenderer.css.sheet.StylesheetInfo;
@@ -199,8 +198,12 @@ public class StyleReference {
         return _matcher.getCascadedStyle(e, restyle);
     }
     
-    public PageInfo getPageStyle(String pageName, String pseudoPage) {
-        return _matcher.getPageCascadedStyle(pageName, pseudoPage);
+    public CascadedStyle getPageStyle() {
+        return _matcher.getPageCascadedStyle();
+    }
+    
+    public CascadedStyle getPageStyle(String pseudoPage) {
+        return _matcher.getPageCascadedStyle(pseudoPage);
     }
 
     /**
@@ -274,49 +277,12 @@ public class StyleReference {
             _matcher.removeStyle(e);
         }
     }
-    
-    public List getFontFaceRules() {
-        return _matcher.getFontFaceRules();
-    }
-    
-    public void setUserAgentCallback(UserAgentCallback userAgentCallback) {
-        _uac = userAgentCallback;
-        _stylesheetFactory.setUserAgentCallback(userAgentCallback);
-    }
-    
-    public void setSupportCMYKColors(boolean b) {
-        _stylesheetFactory.setSupportCMYKColors(b);
-    }
 }
 
 /*
- * $Id$
+ * $Id: StyleReference.java,v 1.16 2007-05-26 19:04:13 peterbrant Exp $
  *
- * $Log$
- * Revision 1.22  2008/07/27 00:21:46  peterbrant
- * Implement CMYK color support for PDF output, starting with patch from Mykola Gurov / Banish java.awt.Color from FS core layout classes
- *
- * Revision 1.21  2008/04/04 13:32:38  peterbrant
- * Fix method name
- *
- * Revision 1.20  2008/04/04 13:28:38  peterbrant
- * Make sure user agent is provided to StyleReference when it's modified / Light cleanup
- *
- * Revision 1.19  2008/01/22 00:29:23  peterbrant
- * Need to propagate changes to user agent in SharedContext to containing StyleReference
- *
- * Revision 1.18  2007/10/31 23:14:42  peterbrant
- * Add rudimentary support for @font-face rules
- *
- * Revision 1.17  2007/08/19 22:22:52  peterbrant
- * Merge R8pbrant changes to HEAD
- *
- * Revision 1.16.2.1  2007/07/09 22:18:04  peterbrant
- * Begin work on running headers and footers and named pages
- *
- * Revision 1.16  2007/05/26 19:04:13  peterbrant
- * Implement support for removing all references to a particular Element (in order to support limited dynamic DOM changes)
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.15  2007/05/20 23:25:34  peterbrant
  * Various code cleanups (e.g. remove unused imports)
  *

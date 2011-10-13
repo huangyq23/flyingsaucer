@@ -33,21 +33,7 @@ public class TableSectionBox extends BlockBox {
     private boolean _needCellWidthCalc;
     private boolean _needCellRecalc;
     
-    private boolean _footer;
-    private boolean _header;
-    
-    private boolean _capturedOriginalAbsY;
-    private int _originalAbsY;
-    
     public TableSectionBox() {
-    }
-    
-    public BlockBox copyOf() {
-        TableSectionBox result = new TableSectionBox();
-        result.setStyle(getStyle());
-        result.setElement(getElement());
-        
-        return result;
     }
     
     public List getGrid() {
@@ -99,10 +85,7 @@ public class TableSectionBox extends BlockBox {
     }
     
     public TableCellBox cellAt(int row, int col) {
-        if (row >= _grid.size()) return null;
-        RowData rowData = (RowData)_grid.get(row);
-        if (col >= rowData.getRow().size()) return null;
-        return (TableCellBox)rowData.getRow().get(col);
+        return (TableCellBox)((RowData)_grid.get(row)).getRow().get(col);
     }
     
     private void setCellAt(int row, int col, TableCellBox cell) {
@@ -157,15 +140,17 @@ public class TableSectionBox extends BlockBox {
         TableCellBox set = cell;
         while (cSpan > 0) {
             int currentSpan;
-            while ( cCol >= getTable().getColumns().size() ) {
-                getTable().appendColumn(1);
+            if (cCol >= nCols) {
+                getTable().appendColumn(cSpan);
+                currentSpan = cSpan;
+            } else {
+                ColumnData cData = (ColumnData)columns.get(cCol);
+                if (cSpan < cData.getSpan()) {
+                    getTable().splitColumn(cCol, cSpan);
+                }
+                cData = (ColumnData)columns.get(cCol);
+                currentSpan = cData.getSpan();
             }
-            ColumnData cData = (ColumnData)columns.get(cCol);
-            if (cSpan < cData.getSpan()) {
-                getTable().splitColumn(cCol, cSpan);
-            }
-            cData = (ColumnData)columns.get(cCol);
-            currentSpan = cData.getSpan();
             
             int r = 0;
             while (r < rSpan) {
@@ -188,7 +173,6 @@ public class TableSectionBox extends BlockBox {
         _grid.clear();
         setNeedCellWidthCalc(true);
         setNeedCellRecalc(true);
-        setCapturedOriginalAbsY(false);
     }
     
     void setCellWidths(LayoutContext c)
@@ -263,51 +247,5 @@ public class TableSectionBox extends BlockBox {
 
     private void setNeedCellRecalc(boolean needCellRecalc) {
         _needCellRecalc = needCellRecalc;
-    }
-    
-    public void layout(LayoutContext c, int contentStart) {
-        boolean running = c.isPrint() && (isHeader() || isFooter()) && getTable().getStyle().isPaginateTable();
-        
-        if (running) {
-            c.setNoPageBreak(c.getNoPageBreak()+1);
-        }
-        
-        super.layout(c, contentStart);
-        
-        if (running) {
-            c.setNoPageBreak(c.getNoPageBreak()-1);
-        }
-    }
-
-    public boolean isFooter() {
-        return _footer;
-    }
-
-    public void setFooter(boolean footer) {
-        _footer = footer;
-    }
-
-    public boolean isHeader() {
-        return _header;
-    }
-
-    public void setHeader(boolean header) {
-        _header = header;
-    }
-
-    public boolean isCapturedOriginalAbsY() {
-        return _capturedOriginalAbsY;
-    }
-
-    public void setCapturedOriginalAbsY(boolean capturedOriginalAbsY) {
-        _capturedOriginalAbsY = capturedOriginalAbsY;
-    }
-
-    public int getOriginalAbsY() {
-        return _originalAbsY;
-    }
-
-    public void setOriginalAbsY(int originalAbsY) {
-        _originalAbsY = originalAbsY;
     }
 }

@@ -102,12 +102,9 @@ public class TextUtil {
 }
 
 /*
- * $Id$
+ * $Id: TextUtil.java,v 1.11 2007-02-07 16:33:33 peterbrant Exp $
  *
- * $Log$
- * Revision 1.11  2007/02/07 16:33:33  peterbrant
- * Initial commit of rewritten table support and associated refactorings
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.10  2005/01/29 20:18:41  pdoubleya
  * Clean/reformat code. Removed commented blocks, checked copyright.
  *

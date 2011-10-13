@@ -57,12 +57,4 @@ public class EmptyReplacedElement implements ReplacedElement {
     public void setLocation(int x, int y) {
         _location = new Point(0, 0);
     }
-
-	public int getBaseline() {
-		return 0;
-	}
-
-	public boolean hasBaseline() {
-		return false;
-	}
 }

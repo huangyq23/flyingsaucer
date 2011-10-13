@@ -33,14 +33,9 @@ public class DemoMarker {
 }
 
 /*
- * $Id$
+ * $Id: DemoMarker.java,v 1.2 2004-10-23 14:38:58 pdoubleya Exp $
  *
- * $Log$
- * Revision 1.2  2004/10/23 14:38:58  pdoubleya
- * Re-formatted using JavaStyle tool.
- * Cleaned imports to resolve wildcards except for common packages (java.io, java.util, etc)
- * Added CVS log comments at bottom.
- *
+ * $Log: not supported by cvs2svn $
  *
  */
 

@@ -1,6 +1,6 @@
 /*
  * {{{ header & license
- * Copyright (c) 2004, 2005 Torbjï¿½rn Gannholm
+ * Copyright (c) 2004, 2005 Torbjörn Gannholm
  * Copyright (c) 2007 Sean Bright
  *
  * This program is free software; you can redistribute it and/or
@@ -28,14 +28,13 @@ import java.util.Map;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 import org.xhtmlrenderer.extend.UserAgentCallback;
-import org.xhtmlrenderer.layout.LayoutContext;
-import org.xhtmlrenderer.render.BlockBox;
 import org.xhtmlrenderer.simple.extend.form.FormField;
 import org.xhtmlrenderer.simple.extend.form.FormFieldFactory;
 import org.xhtmlrenderer.util.XRLog;
@@ -43,11 +42,14 @@ import org.xhtmlrenderer.util.XRLog;
 /**
  * Represents a form object
  *
- * @author Torbjï¿½rn Gannholm
+ * @author Torbjörn Gannholm
  * @author Sean Bright
  */
 public class XhtmlForm {
     private static final String FS_DEFAULT_GROUP = "__fs_default_group_";
+    public static JComponent HIDDEN_FIELD = new JComponent() {
+        private static final long serialVersionUID = 1L;
+    };
 
     private static int _defaultGroupCount = 1;
 
@@ -55,18 +57,12 @@ public class XhtmlForm {
     private Map _componentCache;
     private Map _buttonGroups;
     private Element _parentFormElement;
-    private FormSubmissionListener _formSubmissionListener;
 
-    public XhtmlForm(UserAgentCallback uac, Element e, FormSubmissionListener fsListener) {
+    public XhtmlForm(UserAgentCallback uac, Element e) {
         _userAgentCallback = uac;
         _buttonGroups = new HashMap();
         _componentCache = new LinkedHashMap();
         _parentFormElement = e;
-        _formSubmissionListener = fsListener;
-    }
-
-    public XhtmlForm(UserAgentCallback uac, Element e) {
-        this(uac, e, new DefaultFormSubmissionListener());
     }
 
     public UserAgentCallback getUserAgentCallback() {
@@ -103,7 +99,7 @@ public class XhtmlForm {
         return false;
     }
 
-    public FormField addComponent(Element e, LayoutContext context, BlockBox box) {
+    public JComponent addComponent(Element e) {
         FormField field = null;
 
         if (_componentCache.containsKey(e)) {
@@ -112,8 +108,8 @@ public class XhtmlForm {
             if (!isFormField(e)) {
                 return null;
             }
-
-            field = FormFieldFactory.create(this, context, box);
+            
+            field = FormFieldFactory.create(e, this);
     
             if (field == null) {
                 XRLog.layout("Unknown field type: " + e.getNodeName());
@@ -124,7 +120,7 @@ public class XhtmlForm {
             _componentCache.put(e, field);
         }
 
-        return field;
+        return field.getComponent();
     }
     
     public void reset() {
@@ -147,10 +143,8 @@ public class XhtmlForm {
         }
 
         StringBuffer data = new StringBuffer();
-        String action = _parentFormElement.getAttribute("action");
-        data.append(action).append("?");
         Iterator fields = _componentCache.entrySet().iterator();
-        boolean first=true;
+
         while (fields.hasNext()) {
             Map.Entry entry = (Map.Entry) fields.next();
 
@@ -160,17 +154,19 @@ public class XhtmlForm {
                 String [] dataStrings = field.getFormDataStrings();
                 
                 for (int i = 0; i < dataStrings.length; i++) {
-                    if (!first) {
+                    if (data.length() > 0) {
                         data.append('&');
                     }
     
                     data.append(dataStrings[i]);
-                    first=false;
                 }
             }
         }
         
-        if(_formSubmissionListener !=null) _formSubmissionListener.submit(data.toString());
+        System.out.println("Form Submitted!");
+        System.out.println("Data: " + data.toString());
+
+        JOptionPane.showMessageDialog(null, "Check System.out for the submitted content.", "Form Submission", JOptionPane.INFORMATION_MESSAGE);
     }
 
     public static String collectText(Element e) {
@@ -178,8 +174,7 @@ public class XhtmlForm {
         Node node = e.getFirstChild();
         if (node != null) {
             do {
-                short nodeType = node.getNodeType();
-                if (nodeType == Node.TEXT_NODE || nodeType == Node.CDATA_SECTION_NODE) {
+                if (node.getNodeType() == Node.TEXT_NODE) {
                     Text text = (Text) node;
                     result.append(text.getData());
                 }

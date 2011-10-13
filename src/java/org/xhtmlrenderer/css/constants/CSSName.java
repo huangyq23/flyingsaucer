@@ -94,11 +94,11 @@ public final class CSSName implements Comparable {
      * True if the property inherits by default, false if not inherited
      */
     private final boolean propertyInherits;
-
+    
     private FSDerivedValue initialDerivedValue;
-
+    
     private final boolean implemented;
-
+    
     private final PropertyBuilder builder;
 
     /**
@@ -194,15 +194,6 @@ public final class CSSName implements Comparable {
                     new PrimitivePropertyBuilders.BackgroundPosition()
             );
 
-    public final static CSSName BACKGROUND_SIZE =
-        addProperty(
-                "background-size",
-                PRIMITIVE,
-                "auto auto",
-                NOT_INHERITED,
-                new PrimitivePropertyBuilders.BackgroundSize()
-        );
-
     /**
      * Unique CSSName instance for CSS2 property.
      */
@@ -242,25 +233,61 @@ public final class CSSName implements Comparable {
     /**
      * Unique CSSName instance for CSS2 property.
      */
-    public final static CSSName FS_FONT_METRIC_SRC =
+    public final static CSSName FS_FLOW_TOP =
             addProperty(
-                    "-fs-font-metric-src",
+                    "-fs-flow-top",
                     PRIMITIVE,
                     "none",
                     NOT_INHERITED,
-                    new PrimitivePropertyBuilders.FSFontMetricSrc()
+                    new PrimitivePropertyBuilders.FSFlowTop()
             );
 
     /**
      * Unique CSSName instance for CSS2 property.
      */
-    public final static CSSName FS_KEEP_WITH_INLINE =
+    public final static CSSName FS_FLOW_RIGHT =
             addProperty(
-                    "-fs-keep-with-inline",
+                    "-fs-flow-right",
                     PRIMITIVE,
-                    "auto",
+                    "none",
                     NOT_INHERITED,
-                    new PrimitivePropertyBuilders.FSKeepWithInline()
+                    new PrimitivePropertyBuilders.FSFlowRight()
+            );
+
+    /**
+     * Unique CSSName instance for CSS2 property.
+     */
+    public final static CSSName FS_FLOW_BOTTOM =
+            addProperty(
+                    "-fs-flow-bottom",
+                    PRIMITIVE,
+                    "none",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSFlowBottom()
+            );
+
+    /**
+     * Unique CSSName instance for CSS2 property.
+     */
+    public final static CSSName FS_FLOW_LEFT =
+            addProperty(
+                    "-fs-flow-left",
+                    PRIMITIVE,
+                    "none",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSFlowLeft()
+            );
+
+    /**
+     * Unique CSSName instance for CSS2 property.
+     */
+    public final static CSSName FS_MOVE_TO_FLOW =
+            addProperty(
+                    "-fs-move-to-flow",
+                    PRIMITIVE,
+                    "none",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSMoveToFlow()
             );
 
     /**
@@ -290,42 +317,6 @@ public final class CSSName implements Comparable {
     /**
      * Unique CSSName instance for CSS2 property.
      */
-    public final static CSSName FS_PAGE_SEQUENCE =
-            addProperty(
-                    "-fs-page-sequence",
-                    PRIMITIVE,
-                    "auto",
-                    NOT_INHERITED,
-                    new PrimitivePropertyBuilders.FSPageSequence()
-            );
-
-    /**
-     * Unique CSSName instance for CSS2 property.
-     */
-    public final static CSSName FS_PDF_FONT_EMBED =
-            addProperty(
-                    "-fs-pdf-font-embed",
-                    PRIMITIVE,
-                    "auto",
-                    NOT_INHERITED,
-                    new PrimitivePropertyBuilders.FSPDFFontEmbed()
-            );
-
-    /**
-     * Unique CSSName instance for CSS2 property.
-     */
-    public final static CSSName FS_PDF_FONT_ENCODING =
-            addProperty(
-                    "-fs-pdf-font-encoding",
-                    PRIMITIVE,
-                    "Cp1252",
-                    NOT_INHERITED,
-                    new PrimitivePropertyBuilders.FSPDFFontEncoding()
-            );
-
-    /**
-     * Unique CSSName instance for CSS2 property.
-     */
     public final static CSSName FS_PAGE_ORIENTATION =
             addProperty(
                     "-fs-page-orientation",
@@ -333,18 +324,6 @@ public final class CSSName implements Comparable {
                     "auto",
                     NOT_INHERITED,
                     new PrimitivePropertyBuilders.FSPageOrientation()
-            );
-
-    /**
-     * Unique CSSName instance for CSS2 property.
-     */
-    public final static CSSName FS_TABLE_PAGINATE =
-            addProperty(
-                    "-fs-table-paginate",
-                    PRIMITIVE,
-                    "auto",
-                    NOT_INHERITED,
-                    new PrimitivePropertyBuilders.FSTablePaginate()
             );
 
     /**
@@ -638,8 +617,8 @@ public final class CSSName implements Comparable {
                     PRIMITIVE,
                     "normal",
                     INHERITS,
-                    true,
-                    new PrimitivePropertyBuilders.LetterSpacing()
+                    false,
+                    null
             );
 
     /**
@@ -736,8 +715,8 @@ public final class CSSName implements Comparable {
                     PRIMITIVE,
                     "2",
                     INHERITS,
-                    true,
-                    new PrimitivePropertyBuilders.Orphans()
+                    false,
+                    null
             );
 
     /**
@@ -789,18 +768,6 @@ public final class CSSName implements Comparable {
                     "visible",
                     NOT_INHERITED,
                     new PrimitivePropertyBuilders.Overflow()
-            );
-
-    /**
-     * Unique CSSName instance for CSS2 property.
-     */
-    public final static CSSName PAGE =
-            addProperty(
-                    "page",
-                    PRIMITIVE,
-                    "auto",
-                    INHERITS,
-                    new PrimitivePropertyBuilders.Page()
             );
 
     /**
@@ -875,18 +842,6 @@ public final class CSSName implements Comparable {
                     "auto",
                     NOT_INHERITED,
                     new PrimitivePropertyBuilders.Right()
-            );
-
-    /**
-     * Unique CSSName instance for CSS2 property.
-     */
-    public final static CSSName SRC =
-            addProperty(
-                    "src",
-                    PRIMITIVE,
-                    "none",
-                    NOT_INHERITED,
-                    new PrimitivePropertyBuilders.Src()
             );
 
     /**
@@ -1012,18 +967,6 @@ public final class CSSName implements Comparable {
             );
 
     /**
-     * Unique CSSName instance for CSS3 property.
-     */
-    public final static CSSName WORD_WRAP =
-            addProperty(
-                    "word-wrap",
-                    PRIMITIVE,
-                    "normal",
-                    INHERITS,
-                    new PrimitivePropertyBuilders.WordWrap()
-            );
-
-    /**
      * Unique CSSName instance for CSS2 property.
      */
     public final static CSSName WIDOWS =
@@ -1032,8 +975,8 @@ public final class CSSName implements Comparable {
                     PRIMITIVE,
                     "2",
                     INHERITS,
-                    true,
-                    new PrimitivePropertyBuilders.Widows()
+                    false,
+                    null
             );
 
     /**
@@ -1057,8 +1000,8 @@ public final class CSSName implements Comparable {
                     PRIMITIVE,
                     "normal",
                     INHERITS,
-                    true,
-                    new PrimitivePropertyBuilders.WordSpacing()
+                    false,
+                    null
             );
 
     /**
@@ -1488,54 +1431,56 @@ public final class CSSName implements Comparable {
                     new SizePropertyBuilder()
             );
 
-    public final static CSSSideProperties MARGIN_SIDE_PROPERTIES =
-            new CSSSideProperties(
+    public final static CSSName[] MARGIN_SIDE_PROPERTIES =
+            new CSSName[]{
                     CSSName.MARGIN_TOP,
                     CSSName.MARGIN_RIGHT,
                     CSSName.MARGIN_BOTTOM,
-                    CSSName.MARGIN_LEFT);
+                    CSSName.MARGIN_LEFT
+            };
 
-    public final static CSSSideProperties PADDING_SIDE_PROPERTIES =
-            new CSSSideProperties(
+    public final static CSSName[] PADDING_SIDE_PROPERTIES =
+            new CSSName[]{
                     CSSName.PADDING_TOP,
                     CSSName.PADDING_RIGHT,
                     CSSName.PADDING_BOTTOM,
-                    CSSName.PADDING_LEFT);
+                    CSSName.PADDING_LEFT
+            };
 
-    public final static CSSSideProperties BORDER_SIDE_PROPERTIES =
-            new CSSSideProperties(
+    public final static CSSName[] BORDER_SIDE_PROPERTIES =
+            new CSSName[]{
                     CSSName.BORDER_TOP_WIDTH,
                     CSSName.BORDER_RIGHT_WIDTH,
                     CSSName.BORDER_BOTTOM_WIDTH,
-                    CSSName.BORDER_LEFT_WIDTH);
+                    CSSName.BORDER_LEFT_WIDTH
+            };
 
-    public final static CSSSideProperties BORDER_STYLE_PROPERTIES =
-            new CSSSideProperties(
+    public final static CSSName[] BORDER_STYLE_PROPERTIES =
+            new CSSName[]{
                     CSSName.BORDER_TOP_STYLE,
                     CSSName.BORDER_RIGHT_STYLE,
                     CSSName.BORDER_BOTTOM_STYLE,
-                    CSSName.BORDER_LEFT_STYLE);
+                    CSSName.BORDER_LEFT_STYLE
+            };
 
-    public final static CSSSideProperties BORDER_COLOR_PROPERTIES =
-            new CSSSideProperties(
+    public final static CSSName[] BORDER_COLOR_PROPERTIES =
+            new CSSName[]{
                     CSSName.BORDER_TOP_COLOR,
                     CSSName.BORDER_RIGHT_COLOR,
                     CSSName.BORDER_BOTTOM_COLOR,
-                    CSSName.BORDER_LEFT_COLOR);
-
-
+                    CSSName.BORDER_LEFT_COLOR
+            };
+    
     /**
      * Constructor for the CSSName object
      *
      * @param propName     PARAM
      * @param initialValue
      * @param inherits
-     * @param implemented
-     * @param builder
      */
     private CSSName(
-            String propName, String initialValue, boolean inherits,
-            boolean implemented, PropertyBuilder builder) {
+            String propName, String initialValue, boolean inherits, 
+            Object type, boolean implemented, PropertyBuilder builder) {
         this.propName = propName;
         this.FS_ID = CSSName.maxAssigned++;
         this.initialValue = initialValue;
@@ -1559,7 +1504,7 @@ public final class CSSName implements Comparable {
      *
      * @return Returns
      */
-    public static int countCSSNames() {
+    public final static int countCSSNames() {
         return CSSName.maxAssigned;
     }
 
@@ -1568,7 +1513,7 @@ public final class CSSName implements Comparable {
      *
      * @return Returns
      */
-    public static int countCSSPrimitiveNames() {
+    public final static int countCSSPrimitiveNames() {
         return ALL_PRIMITIVE_PROPERTY_NAMES.size();
     }
 
@@ -1577,7 +1522,7 @@ public final class CSSName implements Comparable {
      *
      * @return Returns
      */
-    public static Iterator allCSS2PropertyNames() {
+    public final static Iterator allCSS2PropertyNames() {
         return ALL_PROPERTY_NAMES.keySet().iterator();
     }
 
@@ -1586,7 +1531,7 @@ public final class CSSName implements Comparable {
      *
      * @return Returns
      */
-    public static Iterator allCSS2PrimitivePropertyNames() {
+    public final static Iterator allCSS2PrimitivePropertyNames() {
         return ALL_PRIMITIVE_PROPERTY_NAMES.keySet().iterator();
     }
 
@@ -1598,7 +1543,7 @@ public final class CSSName implements Comparable {
      * @return Returns
      */
     // CLEAN: method is now unnecessary
-    public static boolean propertyInherits(CSSName cssName) {
+    public final static boolean propertyInherits(CSSName cssName) {
         return cssName.propertyInherits;
     }
 
@@ -1611,19 +1556,19 @@ public final class CSSName implements Comparable {
      * @return Returns
      */
     // CLEAN: method is now unnecessary
-    public static String initialValue(CSSName cssName) {
+    public final static String initialValue(CSSName cssName) {
         return cssName.initialValue;
     }
-
-    public static FSDerivedValue initialDerivedValue(CSSName cssName) {
+    
+    public final static FSDerivedValue initialDerivedValue(CSSName cssName) {
         return cssName.initialDerivedValue;
     }
-
-    public static boolean isImplemented(CSSName cssName) {
+    
+    public final static boolean isImplemented(CSSName cssName) {
         return cssName.implemented;
     }
-
-    public static PropertyBuilder getPropertyBuilder(CSSName cssName) {
+    
+    public final static PropertyBuilder getPropertyBuilder(CSSName cssName) {
         return cssName.builder;
     }
 
@@ -1641,11 +1586,11 @@ public final class CSSName implements Comparable {
     public static CSSName getByID(int id) {
         return ALL_PROPERTIES[id];
     }
-
-    private static synchronized CSSName addProperty(
+    
+    private final static synchronized CSSName addProperty(
             String propName,
             Object type,
-            String initialValue,
+            String initialValue, 
             Object inherit,
             PropertyBuilder builder
     ) {
@@ -1656,23 +1601,21 @@ public final class CSSName implements Comparable {
      * Adds a feature to the Property attribute of the CSSName class
      *
      * @param propName     The feature to be added to the Property attribute
-     * @param ‚type
+     * @param type
      * @param initialValue
      * @param inherit
-     * @param implemented
-     * @param builder
      * @return Returns
      */
-    private static synchronized CSSName addProperty(
+    private final static synchronized CSSName addProperty(
             String propName,
             Object type,
-            String initialValue,
+            String initialValue, 
             Object inherit,
             boolean implemented,
             PropertyBuilder builder
     ) {
         CSSName cssName = new CSSName(
-                propName, initialValue, (inherit == INHERITS), implemented, builder);
+                propName, initialValue, (inherit == INHERITS), type, implemented, builder);
 
         ALL_PROPERTY_NAMES.put(propName, cssName);
 
@@ -1691,7 +1634,7 @@ public final class CSSName implements Comparable {
             ALL_PROPERTIES[name.FS_ID] = name;
         }
     }
-
+    
     static {
         CSSParser parser = new CSSParser(new CSSErrorHandler() {
             public void error(String uri, String message) {
@@ -1705,7 +1648,7 @@ public final class CSSName implements Comparable {
                         cssName, StylesheetInfo.USER_AGENT, cssName.initialValue);
 
                 if (value == null) {
-                    XRLog.exception("Unable to derive initial value for " + cssName);
+                    XRLog.exception("Unable to derive initial value for " + cssName);   
                 } else {
                     cssName.initialDerivedValue = DerivedValueFactory.newDerivedValue(
                             null,
@@ -1721,80 +1664,18 @@ public final class CSSName implements Comparable {
         if (object == null) throw new NullPointerException();//required by Comparable
         return FS_ID - ((CSSName) object).FS_ID;//will throw ClassCastException according to Comparable if not a CSSName
     }
-
-    // FIXME equals, hashcode
-
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof CSSName)) return false;
-
-        CSSName cssName = (CSSName) o;
-
-        return FS_ID == cssName.FS_ID;
-    }
-
+    
     public int hashCode() {
         return FS_ID;
     }
 
-    public static class CSSSideProperties {
-        public final CSSName top;
-        public final CSSName right;
-        public final CSSName bottom;
-        public final CSSName left;
 
-        public CSSSideProperties(CSSName top, CSSName right, CSSName bottom, CSSName left) {
-            this.top = top;
-            this.right = right;
-            this.bottom = bottom;
-            this.left = left;
-        }
-    }
 }
 
 /*
- * $Id$
+ * $Id: CSSName.java,v 1.32 2007-06-20 19:06:48 peterbrant Exp $
  *
- * $Log$
- * Revision 1.40  2009/05/13 18:13:53  pdoubleya
- * FindBugs: static methods don't need to be declared final; remove unused constructor parameter
- *
- * Revision 1.39  2009/05/09 14:17:41  pdoubleya
- * FindBugs: static field should not be mutable; use inner class to declare CSS 4-side properties
- *
- * Revision 1.38  2008/12/14 13:53:30  peterbrant
- * Implement -fs-keep-with-inline: keep property that instructs FS to try to avoid breaking a box so that only borders and padding appear on a page
- *
- * Revision 1.37  2007/10/31 23:14:40  peterbrant
- * Add rudimentary support for @font-face rules
- *
- * Revision 1.36  2007/08/29 22:18:17  peterbrant
- * Experiment with text justification
- *
- * Revision 1.35  2007/08/28 22:31:26  peterbrant
- * Implement widows and orphans properties
- *
- * Revision 1.34  2007/08/27 19:44:06  peterbrant
- * Rename -fs-table-pagination to -fs-table-paginate
- *
- * Revision 1.33  2007/08/19 22:22:51  peterbrant
- * Merge R8pbrant changes to HEAD
- *
- * Revision 1.32.2.4  2007/08/15 21:29:31  peterbrant
- * Initial draft of support for running headers and footers on tables
- *
- * Revision 1.32.2.3  2007/08/08 21:44:09  peterbrant
- * Implement more flexible page numbering
- *
- * Revision 1.32.2.2  2007/08/07 17:06:30  peterbrant
- * Implement named pages / Implement page-break-before/after: left/right / Experiment with efficient selection
- *
- * Revision 1.32.2.1  2007/07/09 22:18:01  peterbrant
- * Begin work on running headers and footers and named pages
- *
- * Revision 1.32  2007/06/20 19:06:48  peterbrant
- * Default font-family should come from CSSName and not the UA stylesheet
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.31  2007/05/26 22:08:16  peterbrant
  * Begin work on counter support
  *

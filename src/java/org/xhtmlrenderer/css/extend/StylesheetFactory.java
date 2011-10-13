@@ -41,12 +41,9 @@ public interface StylesheetFactory {
 }
 
 /*
- * $Id$
+ * $Id: StylesheetFactory.java,v 1.2 2007-05-16 22:27:14 peterbrant Exp $
  *
- * $Log$
- * Revision 1.2  2007/05/16 22:27:14  peterbrant
- * Only load default stylesheet once
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.1  2005/06/23 17:03:42  tobega
  * css now independent of DOM
  *

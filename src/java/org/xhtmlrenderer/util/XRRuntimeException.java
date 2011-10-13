@@ -75,14 +75,9 @@ public class XRRuntimeException extends RuntimeException {
 }
 
 /*
- * $Id$
+ * $Id: XRRuntimeException.java,v 1.5 2007-05-20 23:25:31 peterbrant Exp $
  *
- * $Log$
- * Revision 1.5  2007/05/20 23:25:31  peterbrant
- * Various code cleanups (e.g. remove unused imports)
- *
- * Patch from Sean Bright
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.4  2005/01/29 20:18:38  pdoubleya
  * Clean/reformat code. Removed commented blocks, checked copyright.
  *

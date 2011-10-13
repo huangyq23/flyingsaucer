@@ -536,12 +536,9 @@ public final class Idents {
 }// end class
 
 /*
- * $Id$
+ * $Id: Idents.java,v 1.17 2007-02-19 14:53:36 peterbrant Exp $
  *
- * $Log$
- * Revision 1.17  2007/02/19 14:53:36  peterbrant
- * Integrate new CSS parser
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.16  2007/02/07 16:33:36  peterbrant
  * Initial commit of rewritten table support and associated refactorings
  *

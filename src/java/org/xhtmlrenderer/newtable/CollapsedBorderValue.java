@@ -19,8 +19,9 @@
  */
 package org.xhtmlrenderer.newtable;
 
+import java.awt.Color;
+
 import org.xhtmlrenderer.css.constants.IdentValue;
-import org.xhtmlrenderer.css.parser.FSColor;
 import org.xhtmlrenderer.css.style.derived.BorderPropertySet;
 
 /**
@@ -30,23 +31,29 @@ import org.xhtmlrenderer.css.style.derived.BorderPropertySet;
  * collapsed borders.
  */
 public class CollapsedBorderValue {  
+    public static final CollapsedBorderValue NO_BORDER = new CollapsedBorderValue();
+    
     private IdentValue _style;
     private int _width;
-    private FSColor _color;
+    private Color _color;
     private int _precedence;
     
-    public CollapsedBorderValue(IdentValue style, int width, FSColor color, int precedence) {
+    public CollapsedBorderValue(IdentValue style, int width, Color color, int precedence) {
         _style = style;
         _width = width;
         _color = color;
         _precedence = precedence;
     }
 
-    public FSColor color() {
+    private CollapsedBorderValue() {
+        _style = IdentValue.NONE;
+    }
+
+    public Color color() {
         return _color;
     }
 
-    public void setColor(FSColor color) {
+    public void setColor(Color color) {
         _color = color;
     }
 
@@ -74,16 +81,8 @@ public class CollapsedBorderValue {
         _precedence = precedence;
     }
     
-    public boolean defined() {
-        return _style != null;
-    }
-    
     public boolean exists() {
-        return _style != null && _style != IdentValue.NONE && _style != IdentValue.HIDDEN;
-    }
-    
-    public boolean hidden() {
-        return _style == IdentValue.HIDDEN;
+        return _style != null && _style != IdentValue.NONE;
     }
     
     public static CollapsedBorderValue borderLeft(BorderPropertySet border, int precedence) {

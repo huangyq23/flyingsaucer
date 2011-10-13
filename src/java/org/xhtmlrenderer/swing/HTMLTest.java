@@ -58,6 +58,7 @@ public class HTMLTest extends JFrame {
      */
     public HTMLTest(String[] args) {
         super(BASE_TITLE);
+        //Toolkit.getDefaultToolkit().setDynamicLayout(true);
         panel = new XHTMLPanel();
         int width = 360;
         int height = 500;
@@ -88,6 +89,35 @@ public class HTMLTest extends JFrame {
         view.add(new ReloadPageAction());
 
 
+        /*
+        JMenu test = new JMenu( "Test" );
+        mb.add( test );
+        test.setMnemonic( 'T' );
+
+        String demoRootDir = "demos/browser/xhtml";
+        addFileLoadAction( test, "One Liner", demoRootDir + "/one-line.xhtml" );
+        addFileLoadAction( test, "Background Colors/Images", demoRootDir + "/background.xhtml" );
+        addFileLoadAction( test, "Borders", demoRootDir + "/border.xhtml" );
+        addFileLoadAction( test, "Box Sizing", demoRootDir + "/box-sizing.xhtml" );
+        addFileLoadAction( test, "Mixed Test (1)", demoRootDir + "/content.xhtml" );
+        addFileLoadAction( test, "Line Breaking", demoRootDir + "/breaking.xhtml" );
+        addFileLoadAction( test, "Headers", demoRootDir + "/header.xhtml" );
+        addFileLoadAction( test, "Inline Image", demoRootDir + "/image.xhtml" );
+        addFileLoadAction( test, "List ", demoRootDir + "/list.xhtml" );
+        addFileLoadAction( test, "Nesting", demoRootDir + "/nested.xhtml" );
+        addFileLoadAction( test, "General Styled Text", demoRootDir + "/paragraph.xhtml" );
+        addFileLoadAction( test, "CSS Selectors", demoRootDir + "/selectors.xhtml" );
+        addFileLoadAction( test, "Table", demoRootDir + "/table.xhtml" );
+        addFileLoadAction( test, "Text Alignment", demoRootDir + "/text-alignment.xhtml" );
+        addFileLoadAction( test, "Whitespace Handling", demoRootDir + "/whitespace.xhtml" );
+        addFileLoadAction( test, "iTunes Email", demoRootDir + "/itunes/itunes1.xhtml" );
+        addFileLoadAction( test, "Follow Links", demoRootDir + "/link.xhtml" );
+        addFileLoadAction( test, "Hamlet (slow!)", demoRootDir + "/hamlet.xhtml" );
+        addFileLoadAction( test, "extended", demoRootDir + "/extended.xhtml" );
+        addFileLoadAction( test, "XML-like", demoRootDir + "/xml.xhtml" );
+        addFileLoadAction( test, "XML", demoRootDir + "/xml.xml" );
+        addFileLoadAction( test, "pseudo-element", "/home/tobe/Projekt/xhtmlrenderer/test.xhtml" );
+        */
         JMenu debug = new JMenu("Debug");
         mb.add(debug);
         debug.setMnemonic('D');
@@ -103,10 +133,10 @@ public class HTMLTest extends JFrame {
 
 
         JMenu anti = new JMenu("Anti Aliasing");
-        anti.add(new JCheckBoxMenuItem(new AntiAliasedAction("None", -1)));
-        anti.add(new JCheckBoxMenuItem(new AntiAliasedAction("Low (Default)", 25)));
-        anti.add(new JCheckBoxMenuItem(new AntiAliasedAction("Medium", 12)));
-        anti.add(new JCheckBoxMenuItem(new AntiAliasedAction("Highest", 0)));
+        anti.add(new JCheckBoxMenuItem(new AntiAliasedAction("None", TextRenderer.NONE)));
+        anti.add(new JCheckBoxMenuItem(new AntiAliasedAction("Low (Default)", TextRenderer.LOW)));
+        anti.add(new JCheckBoxMenuItem(new AntiAliasedAction("Medium", TextRenderer.MEDIUM)));
+        anti.add(new JCheckBoxMenuItem(new AntiAliasedAction("Highest", TextRenderer.HIGH)));
         debug.add(anti);
 
         debug.add(new ShowDOMInspectorAction());
@@ -193,7 +223,7 @@ public class HTMLTest extends JFrame {
      *
      * @author empty
      */
-    static class QuitAction extends AbstractAction {
+    class QuitAction extends AbstractAction {
         private static final long serialVersionUID = 1L;
 
         /**
@@ -320,15 +350,15 @@ public class HTMLTest extends JFrame {
     class AntiAliasedAction extends AbstractAction {
         private static final long serialVersionUID = 1L;
 
-        int fontSizeThreshold;
+        int hint;
 
-        AntiAliasedAction(String text, int fontSizeThreshold) {
+        AntiAliasedAction(String text, int hint) {
             super(text);
-            this.fontSizeThreshold = fontSizeThreshold;
+            this.hint = hint;
         }
 
         public void actionPerformed(ActionEvent evt) {
-            panel.getSharedContext().getTextRenderer().setSmoothingThreshold(fontSizeThreshold);
+            panel.getSharedContext().getTextRenderer().setSmoothingLevel(hint);
             panel.repaint();
         }
     }
@@ -389,7 +419,7 @@ public class HTMLTest extends JFrame {
      *
      * @author empty
      */
-    static class RefreshPageAction extends AbstractAction {
+    class RefreshPageAction extends AbstractAction {
         private static final long serialVersionUID = 1L;
 
         /**
@@ -418,7 +448,7 @@ public class HTMLTest extends JFrame {
      *
      * @author empty
      */
-    static class ReloadPageAction extends AbstractAction {
+    class ReloadPageAction extends AbstractAction {
         private static final long serialVersionUID = 1L;
 
         /**
@@ -442,6 +472,7 @@ public class HTMLTest extends JFrame {
             System.out.println("Reload Page triggered");
         }
     }
+
 }
 
 
@@ -452,23 +483,9 @@ public class HTMLTest extends JFrame {
  */
 
 /*
- * $Id$
+ * $Id: HTMLTest.java,v 1.36 2007-05-24 13:22:38 peterbrant Exp $
  *
- * $Log$
- * Revision 1.39  2009/05/09 14:15:14  pdoubleya
- * FindBugs: inner class could be static
- *
- * Revision 1.38  2009/03/22 15:13:24  pdoubleya
- * Follow up for removing Minium AA: font "smoothing level" now deprecated. Changed to use font smoothing threshold alone. Remove corresponding property from configuration file.
- *
- * Revision 1.37  2009/03/22 12:27:36  pdoubleya
- * Remove Minium anti-aliasing library as sources are not available. Removed jar and all references to it. For R8 release.
- *
- * Revision 1.36  2007/05/24 13:22:38  peterbrant
- * Optimize and clean up hover and link listeners
- *
- * Patch from Sean Bright
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.35  2007/05/20 23:25:33  peterbrant
  * Various code cleanups (e.g. remove unused imports)
  *

@@ -55,60 +55,12 @@ public class DOMTreeResolver implements TreeResolver {
 
     public boolean isFirstChildElement(Object element) {
         org.w3c.dom.Node parent = ((org.w3c.dom.Element) element).getParentNode();
-        Node currentChild = parent.getFirstChild();
-        while (currentChild != null && currentChild.getNodeType() != Node.ELEMENT_NODE) {
-            currentChild = currentChild.getNextSibling();
-        }
-        return currentChild == element;
-    }
-
-    public boolean isLastChildElement(Object element) {
-        org.w3c.dom.Node parent = ((org.w3c.dom.Element) element).getParentNode();
-        Node currentChild = parent.getLastChild();
-        while (currentChild != null && currentChild.getNodeType() != Node.ELEMENT_NODE) {
-            currentChild = currentChild.getPreviousSibling();
-        }
-        return currentChild == element;
-    }
-
-    public boolean matchesElement(Object element, String namespaceURI, String name) {
-        Element e = (Element)element;
-        String localName = e.getLocalName();
-        String eName;
-
-        if (localName == null) {
-            eName = e.getNodeName();
-        } else {
-            eName = localName;
-        }
-
-        if (namespaceURI != null) {
-            return name.equals(localName) && namespaceURI.equals(e.getNamespaceURI());
-        } else if (namespaceURI == TreeResolver.NO_NAMESPACE) {
-            return name.equals(eName) && e.getNamespaceURI() == null;
-        } else /* if (namespaceURI == null) */ {
-            return name.equals(eName);
-        }
-    }
-    
-    public int getPositionOfElement(Object element) {
-        org.w3c.dom.Node parent = ((org.w3c.dom.Element) element).getParentNode();
         NodeList nl = parent.getChildNodes();
 
-        int elt_count = 0;
         int i = 0;
-        while (i < nl.getLength()) {
-            if (nl.item(i).getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
-                if(nl.item(i) == element) {
-                    return elt_count;
-                } else {
-                    elt_count++;
-                }
-            }
+        while (i < nl.getLength() && nl.item(i).getNodeType() != org.w3c.dom.Node.ELEMENT_NODE) {
             i++;
         }
-        
-        //should not happen
-        return -1;
+        return (nl.item(i) == element);
     }
 }

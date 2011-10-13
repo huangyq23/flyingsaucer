@@ -20,18 +20,21 @@
  */
 package org.xhtmlrenderer.css.style.derived;
 
+import java.awt.Color;
+
 import org.xhtmlrenderer.css.constants.CSSName;
-import org.xhtmlrenderer.css.parser.FSColor;
 import org.xhtmlrenderer.css.parser.PropertyValue;
 import org.xhtmlrenderer.css.style.DerivedValue;
 
 public class ColorValue extends DerivedValue {
-    private FSColor _color;
+    public static final Color COLOR_TRANSPARENT = new Color(0, 0, 0, 0);
+
+    private Color _derivedColor;
 
     public ColorValue(CSSName name, PropertyValue value) {
         super(name, value.getPrimitiveType(), value.getCssText(), value.getCssText());
         
-        _color = value.getFSColor();
+        _derivedColor = value.getFSRGBColor().toAWTColor();
     }
 
     /**
@@ -39,7 +42,7 @@ public class ColorValue extends DerivedValue {
      *
      * @return The rGBColorValue value
      */
-    public FSColor asColor() {
-        return _color;
-    }   
+    public Color asColor() {
+        return _derivedColor;
+    }
 }

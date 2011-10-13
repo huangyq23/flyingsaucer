@@ -66,18 +66,6 @@ public class ImageUtil {
 		clearImage(image, Color.WHITE);
 	}
 
-    public static BufferedImage makeCompatible(BufferedImage bimg) {
-        GraphicsConfiguration gc = getGraphicsConfiguration();
-        if (bimg.getColorModel().equals(gc.getColorModel())) {
-            return bimg;
-        }
-        BufferedImage cimg = gc.createCompatibleImage(bimg.getWidth(), bimg.getHeight(), bimg.getTransparency());
-        Graphics cg = cimg.getGraphics();
-        cg.drawImage(bimg, 0, 0, null);
-        cg.dispose();
-        return cimg;
-    }
-
 	/**
 	 * Helper method to instantiate new BufferedImages; if the graphics environment is actually connected to real
 	 * screen devices (e.g. not in headless mode), the image will be compatible with the screen device allowing
@@ -102,10 +90,10 @@ public class ImageUtil {
 		if (ge.isHeadlessInstance()) {
 			bimage = new BufferedImage(width, height, biType);
 		} else {
-            GraphicsConfiguration gc = getGraphicsConfiguration();
+			GraphicsDevice gs = ge.getDefaultScreenDevice();
+			GraphicsConfiguration gc = gs.getDefaultConfiguration();
 
-            // TODO: check type using image type - can be sniffed; see Filthy Rich Clients
-            int type = (biType == BufferedImage.TYPE_INT_ARGB || biType == BufferedImage.TYPE_INT_ARGB_PRE ?
+			int type = (biType == BufferedImage.TYPE_INT_ARGB || biType == BufferedImage.TYPE_INT_ARGB_PRE ?
 					Transparency.TRANSLUCENT : Transparency.OPAQUE);
 
 			bimage = gc.createCompatibleImage(width, height, type);
@@ -113,13 +101,6 @@ public class ImageUtil {
 
 		return bimage;
 	}
-
-    private static GraphicsConfiguration getGraphicsConfiguration() {
-        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice gs = ge.getDefaultScreenDevice();
-        GraphicsConfiguration gc = gs.getDefaultConfiguration();
-        return gc;
-    }
 
 	/**
 	 * Creates a BufferedImage compatible with the local graphics environment; this is a helper method for a
@@ -162,10 +143,9 @@ public class ImageUtil {
 		h = (opt.getTargetHeight() <= 0 ? h : opt.getTargetHeight());
 
 		Scaler scaler = (ImageUtil.Scaler) qual.get(opt.getDownscalingHint());
-        opt.setTargetWidth(w);
-        opt.setTargetHeight(h);
+		BufferedImage tmp = scaler.getScaledInstance(orgImage, opt);
 
-        return scaler.getScaledInstance(orgImage, opt);
+		return tmp;
 	}
 
 	/**
@@ -245,20 +225,7 @@ public class ImageUtil {
 		return bimg;
 	}
 
-    public static BufferedImage createTransparentImage(int width, int height) {
-        BufferedImage bi = createCompatibleBufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = bi.createGraphics();
-
-        // Make all filled pixels transparent
-        Color transparent = new Color(0, 0, 0, 0);
-        g2d.setColor(transparent);
-        g2d.setComposite(AlphaComposite.Src);
-        g2d.fillRect(0, 0, width, height);
-        g2d.dispose();
-        return bi;
-    }
-
-    interface Scaler {
+	interface Scaler {
 		/**
 		 * Convenience method that returns a scaled instance of the
 		 * provided {@code BufferedImage}, taken from article on java.net by Chris Campbell

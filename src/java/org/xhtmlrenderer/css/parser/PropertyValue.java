@@ -20,7 +20,6 @@
 package org.xhtmlrenderer.css.parser;
 
 import java.util.List;
-import java.util.ArrayList;
 
 import org.w3c.dom.DOMException;
 import org.w3c.dom.css.CSSPrimitiveValue;
@@ -29,7 +28,6 @@ import org.w3c.dom.css.Counter;
 import org.w3c.dom.css.RGBColor;
 import org.w3c.dom.css.Rect;
 import org.xhtmlrenderer.css.constants.IdentValue;
-import org.xhtmlrenderer.util.ArrayUtil;
 
 public class PropertyValue implements CSSPrimitiveValue {
     public static final short VALUE_TYPE_NUMBER = 1;
@@ -49,7 +47,7 @@ public class PropertyValue implements CSSPrimitiveValue {
     
     private String _cssText;
     
-    private FSColor _FSColor;
+    private FSRGBColor _FSRGBColor;
     
     private IdentValue _identValue;
     
@@ -59,7 +57,7 @@ public class PropertyValue implements CSSPrimitiveValue {
     
     private List _values;
     private FSFunction _function;
-
+    
     public PropertyValue(short type, float floatValue, String cssText) {
         _type = type;
         _floatValue = floatValue;
@@ -73,11 +71,11 @@ public class PropertyValue implements CSSPrimitiveValue {
         }
     }
     
-    public PropertyValue(FSColor color) {
+    public PropertyValue(FSRGBColor color) {
         _type = CSSPrimitiveValue.CSS_RGBCOLOR;
         _cssValueType = CSSValue.CSS_PRIMITIVE_VALUE;
         _cssText = color.toString();
-        _FSColor = color;
+        _FSRGBColor = color;
         
         _propertyValueType = VALUE_TYPE_COLOR;
     }
@@ -173,8 +171,8 @@ public class PropertyValue implements CSSPrimitiveValue {
         throw new UnsupportedOperationException();
     }
     
-    public FSColor getFSColor() {
-        return _FSColor;
+    public FSRGBColor getFSRGBColor() {
+        return _FSRGBColor;
     }
 
     public IdentValue getIdentValue() {
@@ -198,11 +196,11 @@ public class PropertyValue implements CSSPrimitiveValue {
     }
 
     public String[] getStringArrayValue() {
-        return ArrayUtil.cloneOrEmpty(_stringArrayValue);
+        return _stringArrayValue;
     }
 
     public void setStringArrayValue(String[] stringArrayValue) {
-        _stringArrayValue = ArrayUtil.cloneOrEmpty(stringArrayValue);
+        _stringArrayValue = stringArrayValue;
     }
     
     public String toString() {
@@ -210,7 +208,7 @@ public class PropertyValue implements CSSPrimitiveValue {
     }
     
     public List getValues() {
-        return new ArrayList(_values);
+        return _values;
     }
     
     public FSFunction getFunction() {

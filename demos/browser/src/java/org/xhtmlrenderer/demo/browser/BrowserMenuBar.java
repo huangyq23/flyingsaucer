@@ -19,16 +19,26 @@
  */
 package org.xhtmlrenderer.demo.browser;
 
-import org.xhtmlrenderer.demo.browser.actions.ZoomAction;
+import org.xhtmlrenderer.extend.TextRenderer;
+import org.xhtmlrenderer.layout.SharedContext;
 import org.xhtmlrenderer.swing.*;
 import org.xhtmlrenderer.util.Configuration;
 import org.xhtmlrenderer.util.Uu;
+import org.xhtmlrenderer.demo.browser.actions.ZoomAction;
+import org.w3c.dom.Element;
 
 import javax.swing.*;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseListener;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
@@ -139,8 +149,6 @@ public class BrowserMenuBar extends JMenuBar {
 
         file.add(root.actions.open_file);
         file.add(new JSeparator());
-        file.add(root.actions.export_pdf);
-        file.add(new JSeparator());
         file.add(root.actions.quit);
         add(file);
 
@@ -199,11 +207,39 @@ public class BrowserMenuBar extends JMenuBar {
         debugShow.add(new JCheckBoxMenuItem(new FontMetricsAction()));
 
         JMenu anti = new JMenu("Anti Aliasing");
+        ButtonGroup implementation = new ButtonGroup();
+        JRadioButtonMenuItem java2d = new JRadioButtonMenuItem(new AbstractAction("Java2D Implementation") {
+            public void actionPerformed(ActionEvent evt) {
+                SharedContext rc = panel.getSharedContext();
+                int level = rc.getTextRenderer().getSmoothingLevel();
+                rc.setTextRenderer(new Java2DTextRenderer());
+                rc.getTextRenderer().setSmoothingLevel(level);
+                panel.repaint();
+            }
+        });
+        java2d.setSelected(true);
+        implementation.add(java2d);
+        anti.add(java2d);
+
+        JRadioButtonMenuItem minium = new JRadioButtonMenuItem(new AbstractAction("Minium Implementation") {
+            public void actionPerformed(ActionEvent evt) {
+                SharedContext rc = panel.getSharedContext();
+                int level = rc.getTextRenderer().getSmoothingLevel();
+                rc.setTextRenderer(new MiniumTextRenderer());
+                rc.getTextRenderer().setSmoothingLevel(level);
+                panel.repaint();
+            }
+        });
+        implementation.add(minium);
+        anti.add(minium);
+
+        anti.add(new JSeparator());
+
         ButtonGroup anti_level = new ButtonGroup();
-        addLevel(anti, anti_level, "None", -1);
-        addLevel(anti, anti_level, "Low", 25).setSelected(true);
-        addLevel(anti, anti_level, "Medium", 12);
-        addLevel(anti, anti_level, "High", 0);
+        addLevel(anti, anti_level, "None", TextRenderer.NONE);
+        addLevel(anti, anti_level, "Low", TextRenderer.LOW).setSelected(true);
+        addLevel(anti, anti_level, "Medium", TextRenderer.MEDIUM);
+        addLevel(anti, anti_level, "High", TextRenderer.HIGH);
         debug.add(anti);
 
 
@@ -249,40 +285,22 @@ public class BrowserMenuBar extends JMenuBar {
 
     private void populateDemoList() {
         List demoList = new ArrayList();
-        URL url = BrowserMenuBar.class.getResource("/demos/file-list.txt");
-        InputStream is = null;
-        LineNumberReader lnr = null;
+        URL url = BrowserMenuBar.class.getResource("/demos/r7/file-list.txt");
         if (url != null) {
             try {
-                is = url.openStream();
+                InputStream is = url.openStream();
                 InputStreamReader reader = new InputStreamReader(is);
-                lnr = new LineNumberReader(reader);
-                try {
-                    String line;
-                    while ((line = lnr.readLine()) != null) {
-                        demoList.add(line);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    try {
-                        lnr.close();
-                    } catch (IOException e) {
-                        // swallow
-                    }
+                LineNumberReader lnr = new LineNumberReader(reader);
+                String line = null;
+                while ((line = lnr.readLine()) != null) {
+                    demoList.add(line);
                 }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (is != null) {
-                    try {
-                        is.close();
-                    } catch (IOException e) {
-                        // swallow
-                    }
-                }
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
-
+    
             for (Iterator itr = demoList.iterator(); itr.hasNext();) {
                 String s = (String) itr.next();
                 String s1[] = s.split(",");
@@ -304,11 +322,11 @@ public class BrowserMenuBar extends JMenuBar {
      */
     public void createActions() {
         if (Configuration.isTrue("xr.use.listeners", true)) {
-            List l = root.panel.view.getMouseTrackingListeners();
-            for (Iterator i = l.iterator(); i.hasNext(); ) {
-                FSMouseListener listener = (FSMouseListener)i.next();
-                if ( listener instanceof LinkListener ) {
-                    root.panel.view.removeMouseTrackingListener(listener);
+            MouseListener[] lls = root.panel.view.getMouseListeners();
+            for (int i = 0; i < lls.length; i++) {
+                MouseListener ll = lls[i];
+                if ( ll instanceof LinkListener ) {
+                    root.panel.view.removeMouseListener(ll);
                 }
             }
 
@@ -493,7 +511,7 @@ public class BrowserMenuBar extends JMenuBar {
         public NextDemoAction() {
             super("Next Demo Page");
             putValue(MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
-            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.ALT_MASK));
         }
 
         /**
@@ -534,7 +552,7 @@ public class BrowserMenuBar extends JMenuBar {
         public PriorDemoAction() {
             super("Prior Demo Page");
             putValue(MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
-            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_P, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_P, KeyEvent.ALT_MASK));
         }
 
         /**
@@ -612,15 +630,15 @@ public class BrowserMenuBar extends JMenuBar {
     }
 
     class AntiAliasedAction extends AbstractAction {
-        int fontSizeThreshold;
+        int hint;
 
-        AntiAliasedAction(String text, int fontSizeThreshold) {
+        AntiAliasedAction(String text, int hint) {
             super(text);
-            this.fontSizeThreshold = fontSizeThreshold;
+            this.hint = hint;
         }
 
         public void actionPerformed(ActionEvent evt) {
-            root.panel.view.getSharedContext().getTextRenderer().setSmoothingThreshold(fontSizeThreshold);
+            root.panel.view.getSharedContext().getTextRenderer().setSmoothingLevel(hint);
             root.panel.view.repaint();
         }
     }
@@ -675,33 +693,9 @@ class EmptyAction extends AbstractAction {
 }
 
 /*
-* $Id$
+* $Id: BrowserMenuBar.java,v 1.44 2007-07-13 13:32:31 pdoubleya Exp $
 *
-* $Log$
-* Revision 1.51  2009/05/09 15:16:43  pdoubleya
-* FindBugs: proper disposal of IO resources
-*
-* Revision 1.50  2009/03/22 15:13:24  pdoubleya
-* Follow up for removing Minium AA: font "smoothing level" now deprecated. Changed to use font smoothing threshold alone. Remove corresponding property from configuration file.
-*
-* Revision 1.49  2009/03/22 12:27:38  pdoubleya
-* Remove Minium anti-aliasing library as sources are not available. Removed jar and all references to it. For R8 release.
-*
-* Revision 1.48  2009/02/15 19:57:49  pdoubleya
-* Remove references to "r7", and move browser demos to top-level xhtml directory.
-*
-* Revision 1.47  2008/09/06 18:44:29  peterbrant
-* Add PDF export to browser (patch from Mykola Gurov)
-*
-* Revision 1.46  2007/11/01 00:18:31  peterbrant
-* Adapt to R7 mouse tracking API
-*
-* Revision 1.45  2007/07/14 17:38:17  pdoubleya
-* fix menu accelerator assignments to be cross-platform compatible (esp. with OS X)
-*
-* Revision 1.44  2007/07/13 13:32:31  pdoubleya
-* Add webstart entry point for browser with no URL or File/open option. Move Zoom to menu entry, add warning on first zoom. Move preview to menu entry. Reorganize launch method a little to allow for multiple entry points.
-*
+* $Log: not supported by cvs2svn $
 * Revision 1.43  2007/05/24 13:22:39  peterbrant
 * Optimize and clean up hover and link listeners
 *

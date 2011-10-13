@@ -35,7 +35,6 @@ import org.xhtmlrenderer.context.StyleReference;
 import org.xhtmlrenderer.css.style.CalculatedStyle;
 import org.xhtmlrenderer.css.style.EmptyStyle;
 import org.xhtmlrenderer.css.value.FontSpecification;
-import org.xhtmlrenderer.extend.FSCanvas;
 import org.xhtmlrenderer.extend.FontContext;
 import org.xhtmlrenderer.extend.FontResolver;
 import org.xhtmlrenderer.extend.NamespaceHandler;
@@ -46,8 +45,8 @@ import org.xhtmlrenderer.render.Box;
 import org.xhtmlrenderer.render.FSFont;
 import org.xhtmlrenderer.render.FSFontMetrics;
 import org.xhtmlrenderer.render.RenderingContext;
-import org.xhtmlrenderer.simple.extend.FormSubmissionListener;
 import org.xhtmlrenderer.swing.Java2DTextRenderer;
+import org.xhtmlrenderer.swing.RootPanel;
 import org.xhtmlrenderer.swing.SwingReplacedElementFactory;
 import org.xhtmlrenderer.util.XRLog;
 
@@ -62,7 +61,7 @@ public class SharedContext {
     private UserAgentCallback uac;
 
     private boolean interactive = true;
-
+    
     private Map idMap;
 
     /*
@@ -87,23 +86,20 @@ public class SharedContext {
 
     private final static float DEFAULT_DPI = 72;
     private boolean print;
-
+    
     private int dotsPerPixel = 1;
-
+    
     private Map styleMap;
-
-    private ReplacedElementFactory replacedElementFactory;
+    
+    private ReplacedElementFactory _replacedElementFactory;
     private Rectangle temp_canvas;
-
-    public SharedContext() {
-    }
 
     /**
      * Constructor for the Context object
      */
     public SharedContext(UserAgentCallback uac) {
         font_resolver = new AWTFontResolver();
-        replacedElementFactory = new SwingReplacedElementFactory();
+        _replacedElementFactory = new SwingReplacedElementFactory();
         setMedia("screen");
         this.uac = uac;
         setCss(new StyleReference(uac));
@@ -116,25 +112,6 @@ public class SharedContext {
         }
     }
 
-
-    /**
-     * Constructor for the Context object
-     */
-    public SharedContext(UserAgentCallback uac, FontResolver fr, ReplacedElementFactory ref, TextRenderer tr, float dpi) {
-        font_resolver = fr;
-        replacedElementFactory = ref;
-        setMedia("screen");
-        this.uac = uac;
-        setCss(new StyleReference(uac));
-        XRLog.render("Using CSS implementation from: " + getCss().getClass().getName());
-        setTextRenderer(tr);
-        setDPI(dpi);
-    }
-
-    public void setFormSubmissionListener(FormSubmissionListener fsl) {
-        replacedElementFactory.setFormSubmissionListener(fsl);
-    }
-
     public LayoutContext newLayoutContextInstance() {
         LayoutContext c = new LayoutContext(this);
         return c;
@@ -145,8 +122,7 @@ public class SharedContext {
         return c;
     }
 
-    /*
-=========== Font stuff ============== */
+    /* =========== Font stuff ============== */
 
     /**
      * Gets the fontResolver attribute of the Context object
@@ -193,7 +169,7 @@ public class SharedContext {
     /**
      * Description of the Field
      */
-    protected FSCanvas canvas;
+    protected RootPanel canvas;
 
     /*
      * selection management code
@@ -266,8 +242,120 @@ public class SharedContext {
     }
 
 
-    /*
-=========== Selection Management ============== */
+    /**
+     * Description of the Method
+     */
+    public void clearSelection() {
+        selection_end = null;
+        selection_start = null;
+        int selection_start_x1 = -1;
+        selection_start_x = selection_start_x1;
+        int selection_end_x1 = -1;
+        selection_end_x = selection_end_x1;
+    }
+
+    /**
+     * Description of the Method
+     *
+     * @param box PARAM
+     */
+    public void updateSelection(Box box) {
+        if (box == selection_end) {
+            in_selection = false;
+        }
+        if (box == selection_start) {
+            in_selection = true;
+        }
+        if (box == selection_end && box == selection_start) {
+            in_selection = false;
+        }
+    }
+
+    /**
+     * Description of the Method
+     *
+     * @param box PARAM
+     * @return Returns
+     */
+    public boolean inSelection(Box box) {
+        if (box == selection_end ||
+                box == selection_start) {
+            return true;
+        }
+        return in_selection;
+    }
+
+    
+    /* =========== Selection Management ============== */
+    
+    
+    /**
+     * Gets the selectionStart attribute of the Context object
+     *
+     * @return The selectionStart value
+     */
+    public Box getSelectionStart() {
+        return selection_start;
+    }
+
+    /**
+     * Gets the selectionEnd attribute of the Context object
+     *
+     * @return The selectionEnd value
+     */
+    public Box getSelectionEnd() {
+        return selection_end;
+    }
+
+    /**
+     * Gets the selectionStartX attribute of the Context object
+     *
+     * @return The selectionStartX value
+     */
+    public int getSelectionStartX() {
+        return selection_start_x;
+    }
+
+    /**
+     * Gets the selectionEndX attribute of the Context object
+     *
+     * @return The selectionEndX value
+     */
+    public int getSelectionEndX() {
+        return selection_end_x;
+    }
+
+    /**
+     * Sets the selectionStart attribute of the Context object
+     *
+     * @param box The new selectionStart value
+     */
+    //TODO: is this the place for selections? A separate kind of context for that kind of stuff might be better?
+    public void setSelectionStart(Box box, int x) {
+        selection_start = box;
+        selection_start_x = x;
+    }
+
+    /**
+     * Sets the selectionEnd attribute of the Context object
+     *
+     * @param box The new selectionEnd value
+     */
+    public void setSelectionEnd(Box box, int x) {
+        selection_end = box;
+        selection_end_x = x;
+        //TODO: find a way to do this
+        /*if (box instanceof InlineBox) {
+            InlineBox ib = (InlineBox) box;
+            int i = ib.getTextIndex(x, getGraphics());
+            selection_end_x = ib.getAdvance(i, getGraphics());
+        }*/
+    }
+
+
+    
+    
+    /* =========== Form Stuff ============== */
 
 
     public StyleReference getCss() {
@@ -278,11 +366,11 @@ public class SharedContext {
         this.css = css;
     }
 
-    public FSCanvas getCanvas() {
+    public RootPanel getCanvas() {
         return canvas;
     }
 
-    public void setCanvas(FSCanvas canvas) {
+    public void setCanvas(RootPanel canvas) {
         this.canvas = canvas;
     }
 
@@ -325,18 +413,13 @@ public class SharedContext {
         }
         return (Box) idMap.get(id);
     }
-
+    
     public void removeBoxId(String id) {
         if (idMap != null) {
             idMap.remove(id);
         }
     }
-
-    public Map getIdMap()
-    {
-        return idMap;
-    }
-
+    
     /**
      * Sets the textRenderer attribute of the RenderingContext object
      *
@@ -356,7 +439,7 @@ public class SharedContext {
      *
      * @param media The new media value
      */
-    public void setMedia(String media) {
+    private void setMedia(String media) {
         this.media = media;
     }
 
@@ -368,16 +451,12 @@ public class SharedContext {
     public UserAgentCallback getUac() {
         return uac;
     }
-
+    
     public UserAgentCallback getUserAgentCallback() {
         return uac;
     }
-
+    
     public void setUserAgentCallback(UserAgentCallback userAgentCallback) {
-        StyleReference styleReference = getCss();
-        if (styleReference != null) {
-            styleReference.setUserAgentCallback(userAgentCallback);
-        }
         uac = userAgentCallback;
     }
 
@@ -413,7 +492,7 @@ public class SharedContext {
     public float getMmPerPx() {
         return this.mm_per_dot;
     }
-
+    
     public FSFont getFont(FontSpecification spec) {
         return getFontResolver().resolveFont(this, spec);
     }
@@ -531,7 +610,7 @@ public class SharedContext {
             ((AWTFontResolver)resolver).setFontMapping(name, font);
         }
     }
-
+    
     public void setFontResolver(FontResolver resolver) {
         font_resolver = resolver;
     }
@@ -543,16 +622,16 @@ public class SharedContext {
     public void setDotsPerPixel(int pixelsPerDot) {
         this.dotsPerPixel = pixelsPerDot;
     }
-
+    
     public CalculatedStyle getStyle(Element e) {
         return getStyle(e, false);
     }
-
+    
     public CalculatedStyle getStyle(Element e, boolean restyle) {
         if (styleMap == null) {
             styleMap = new HashMap(1024, 0.75f);
         }
-
+        
         CalculatedStyle result = null;
         if (! restyle) {
             result = (CalculatedStyle)styleMap.get(e);
@@ -565,49 +644,49 @@ public class SharedContext {
             } else {
                 parentCalculatedStyle = getStyle((Element)parent, false);
             }
-
+            
             result = parentCalculatedStyle.deriveStyle(getCss().getCascadedStyle(e, restyle));
-
+            
             styleMap.put(e, result);
         }
-
+        
         return result;
     }
-
+    
     public void reset() {
        styleMap = null;
        idMap = null;
-       replacedElementFactory.reset();
+       _replacedElementFactory.reset();
     }
 
     public ReplacedElementFactory getReplacedElementFactory() {
-        return replacedElementFactory;
+        return _replacedElementFactory;
     }
 
-    public void setReplacedElementFactory(ReplacedElementFactory ref) {
-        if (ref == null) {
+    public void setReplacedElementFactory(ReplacedElementFactory replacedElementFactory) {
+        if (replacedElementFactory == null) {
             throw new NullPointerException("replacedElementFactory may not be null");
         }
-
-        if (this.replacedElementFactory != null) {
-            this.replacedElementFactory.reset();
+        
+        if (_replacedElementFactory != null) {
+            _replacedElementFactory.reset();
         }
-        this.replacedElementFactory = ref;
+        _replacedElementFactory = replacedElementFactory;
     }
-
+    
     public void removeElementReferences(Element e) {
         String id = namespaceHandler.getID(e);
         if (id != null && id.length() > 0) {
             removeBoxId(id);
         }
-
+        
         if (styleMap != null) {
             styleMap.remove(e);
         }
-
+        
         getCss().removeStyle(e);
         getReplacedElementFactory().remove(e);
-
+        
         if (e.hasChildNodes()) {
             NodeList children = e.getChildNodes();
             for (int i = 0; i < children.getLength(); i++) {
@@ -621,23 +700,9 @@ public class SharedContext {
 }
 
 /*
+ * $Id: SharedContext.java,v 1.40 2007-07-04 14:13:18 peterbrant Exp $
  *
- * $Log$
- * Revision 1.46  2009/05/08 12:22:30  pdoubleya
- * Merge Vianney's SWT branch to trunk. Passes regress.verify and browser still works :).
- *
- * Revision 1.42  2008/01/22 00:29:24  peterbrant
- * Need to propagate changes to user agent in SharedContext to containing StyleReference
- *
- * Revision 1.41  2007/08/19 22:22:52  peterbrant
- * Merge R8pbrant changes to HEAD
- *
- * Revision 1.39.2.2  2007/08/07 17:06:30  peterbrant
- * Implement named pages / Implement page-break-before/after: left/right / Experiment with efficient selection
- *
- * Revision 1.39.2.1  2007/07/04 14:12:33  peterbrant
- * Permit a custom user agent with rendering to PDF
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.39  2007/05/26 19:04:13  peterbrant
  * Implement support for removing all references to a particular Element (in order to support limited dynamic DOM changes)
  *
@@ -1025,3 +1090,4 @@ public class SharedContext {
  *
  *
  */
+

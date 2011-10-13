@@ -225,12 +225,9 @@ public class DocumentDiffTest {
 }
 
 /*
- * $Id$
+ * $Id: DocumentDiffTest.java,v 1.19 2007-05-23 00:12:18 peterbrant Exp $
  *
- * $Log$
- * Revision 1.19  2007/05/23 00:12:18  peterbrant
- * Code cleanup (patch from Sean Bright)
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.18  2007/05/20 23:25:32  peterbrant
  * Various code cleanups (e.g. remove unused imports)
  *

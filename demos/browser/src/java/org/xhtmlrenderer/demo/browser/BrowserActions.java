@@ -32,7 +32,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Logger;
 
@@ -45,7 +44,7 @@ public class BrowserActions {
     /**
      * Description of the Field
      */
-    public Action open_file, export_pdf , quit, print;
+    public Action open_file, quit, print;
     /**
      * Description of the Field
      */
@@ -64,7 +63,7 @@ public class BrowserActions {
     /**
      * The system logger for app.browser
      */
-    public static final Logger logger = Logger.getLogger("app.browser");
+    public static Logger logger = Logger.getLogger("app.browser");
 
     /**
      * Constructor for the BrowserActions object
@@ -102,25 +101,6 @@ public class BrowserActions {
         setAccel(open_file, KeyEvent.VK_O);
         setMnemonic(open_file, new Integer(KeyEvent.VK_O));
 
-        
-        export_pdf =
-            new AbstractAction() {
-                public void actionPerformed(ActionEvent evt) {
-                    exportToPdf();
-                }
-            };
-        export_pdf.putValue(Action.NAME, "Export PDF...");
-        //is iText in classpath? 
-        try{
-            Class.forName("com.lowagie.text.DocumentException");
-        } catch( ClassNotFoundException e )
-        {
-            export_pdf.setEnabled(false);
-        }
-        
-        /*setAccel(export_pdf, KeyEvent.VK_E);
-        setMnemonic(export_pdf, new Integer(KeyEvent.VK_E));*/
-
         /* printing disabled for R6
         url = getImageUrl("images/document-print.png");
         print = new PrintAction(root, new ImageIcon(url));
@@ -153,8 +133,8 @@ public class BrowserActions {
 
         backward.setEnabled(false);
         backward.putValue(Action.ACCELERATOR_KEY,
-                KeyStroke.getKeyStroke(KeyEvent.VK_LEFT,
-                        KeyEvent.ALT_MASK));
+                KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT,
+                        InputEvent.ALT_MASK));
 
 
         url = getImageUrl("images/go-next.png");
@@ -171,7 +151,7 @@ public class BrowserActions {
         forward.setEnabled(false);
         forward.putValue(Action.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT,
-                        KeyEvent.ALT_MASK));
+                        InputEvent.ALT_MASK));
 
         url = getImageUrl("images/view-refresh.png");
         refresh = new EmptyAction("Refresh", "Refresh page", new ImageIcon(url)) {
@@ -250,7 +230,7 @@ public class BrowserActions {
         usersManual = new EmptyAction("FS User's Guide", "Flying Saucer User's Guide", null) {
             public void actionPerformed(ActionEvent evt) {
                 try {
-                    root.panel.loadPage("/users-guide-r8.html");
+                    root.panel.loadPage("/r7/users-guide-r7.html");
                     root.panel.view.repaint();
                 } catch (Exception ex) {
                     Uu.p(ex);
@@ -297,12 +277,10 @@ public class BrowserActions {
         final JDialog aboutDlg = new JDialog(root.frame);
         aboutDlg.setSize(new Dimension(500, 450));
 
-        PanelManager uac = new PanelManager();
-        XHTMLPanel panel = new XHTMLPanel(uac);
-        uac.setRepaintListener(panel);
+        XHTMLPanel panel = new XHTMLPanel(new PanelManager());
         panel.setOpaque(false);
 
-        panel.setDocument("demo:/demos/about.xhtml");
+        panel.setDocument("demo:/demos/r7/about.xhtml");
 
         JPanel outer = new JPanel(new BorderLayout());
         outer.add(panel, BorderLayout.CENTER);
@@ -324,6 +302,9 @@ public class BrowserActions {
         aboutDlg.getContentPane().add(outer, BorderLayout.CENTER);
 
         aboutDlg.setTitle("About the Browser Demo");
+
+        int x = (int) root.frame.getLocationOnScreen().getX();
+        int y = (int) root.frame.getLocationOnScreen().getX();
 
         int xx = (root.frame.getWidth() - aboutDlg.getWidth()) / 2;
         int yy = (root.frame.getHeight() - aboutDlg.getHeight()) / 2;
@@ -360,19 +341,6 @@ public class BrowserActions {
             if (fd.getFile() != null) {
                 final String url = new File(fd.getDirectory(), fd.getFile()).toURI().toURL().toString();
                 root.panel.loadPage(url);
-            }
-        } catch (Exception ex) {
-            logger.info("error:" + ex);
-        }
-    }
-
-    private void exportToPdf() {
-        try {
-            FileDialog fd = new FileDialog(root.frame, "Save as PDF", FileDialog.SAVE);
-            fd.setVisible( true );
-            if (fd.getFile() != null) {
-                File outTarget = new File(fd.getDirectory(), fd.getFile());
-                root.panel.exportToPdf(outTarget.getAbsolutePath());
             }
         } catch (Exception ex) {
             logger.info("error:" + ex);
@@ -418,36 +386,9 @@ public class BrowserActions {
 }
 
 /*
- * $Id$
+ * $Id: BrowserActions.java,v 1.28 2007-07-13 13:32:31 pdoubleya Exp $
  *
- * $Log$
- * Revision 1.36  2009/05/15 16:28:14  pdoubleya
- * Integrate async image loading, starting point is DelegatingUserAgentCallback. AWT images are now always buffered, but screen-compatible. RootPanel now supports a repaint mechanism, with optional layout, with some attempt to control how often one or the other actually takes place when many images have been loaded.
- *
- * Revision 1.35  2009/05/09 13:54:45  pdoubleya
- * FindBugs: field can be final; remove unused local vars.
- *
- * Revision 1.34  2009/04/13 14:45:19  pdoubleya
- * Fix location for user's guide within browser JAR
- *
- * Revision 1.33  2009/04/12 11:14:28  pdoubleya
- * Fix path for user's guide.
- *
- * Revision 1.32  2009/02/15 19:57:48  pdoubleya
- * Remove references to "r7", and move browser demos to top-level xhtml directory.
- *
- * Revision 1.31  2008/09/06 18:44:29  peterbrant
- * Add PDF export to browser (patch from Mykola Gurov)
- *
- * Revision 1.30  2007/07/14 17:42:32  pdoubleya
- * Leave nav back/forward bound to Alt, since this is FF standard
- *
- * Revision 1.29  2007/07/14 17:38:17  pdoubleya
- * fix menu accelerator assignments to be cross-platform compatible (esp. with OS X)
- *
- * Revision 1.28  2007/07/13 13:32:31  pdoubleya
- * Add webstart entry point for browser with no URL or File/open option. Move Zoom to menu entry, add warning on first zoom. Move preview to menu entry. Reorganize launch method a little to allow for multiple entry points.
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.27  2007/04/11 21:06:23  pdoubleya
  * Prepare to point to R7 versions of files
  *

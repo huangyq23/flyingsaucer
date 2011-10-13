@@ -44,7 +44,6 @@ public class Stylesheet implements RulesetContainer {
      */
     private int _origin;
 
-    private List _fontFaceRules = new ArrayList();
     private List _importRules = new ArrayList();
     private List _contents = new ArrayList();
 
@@ -100,27 +99,13 @@ public class Stylesheet implements RulesetContainer {
     public List getImportRules() {
         return _importRules;
     }
-    
-    public void addFontFaceRule(FontFaceRule rule) {
-        _fontFaceRules.add(rule);
-    }
-    
-    public List getFontFaceRules() {
-        return _fontFaceRules;
-    }
 
 }// end class
 
 /*
- * $Id$
+ * $Id: Stylesheet.java,v 1.16 2007-02-20 01:17:11 peterbrant Exp $
  *
- * $Log$
- * Revision 1.17  2007/10/31 23:14:44  peterbrant
- * Add rudimentary support for @font-face rules
- *
- * Revision 1.16  2007/02/20 01:17:11  peterbrant
- * Start CSS parser cleanup
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.15  2007/02/19 14:53:38  peterbrant
  * Integrate new CSS parser
  *

@@ -46,5 +46,5 @@ public class NumberValue extends DerivedValue {
 }
 
 /*
- * $Id$
+ * $Id: NumberValue.java,v 1.7 2007-02-20 16:49:21 peterbrant Exp $
  */

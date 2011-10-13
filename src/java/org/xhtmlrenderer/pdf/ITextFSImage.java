@@ -23,41 +23,37 @@ import org.xhtmlrenderer.extend.FSImage;
 
 import com.lowagie.text.Image;
 
-public class ITextFSImage implements FSImage, Cloneable {
+public class ITextFSImage implements FSImage {
     private Image _image;
-
+    
     public ITextFSImage(Image image) {
         _image = image;
     }
 
     public int getWidth() {
-        return (int)_image.getPlainWidth();
+        return (int)_image.plainWidth();
     }
 
     public int getHeight() {
-        return (int)_image.getPlainHeight();
+        return (int)_image.plainHeight();
     }
 
     public void scale(int width, int height) {
         int targetWidth = width;
         int targetHeight = height;
-
+        
         if (targetWidth == -1) {
-            targetWidth = (int)(getWidth() * ((double)targetHeight / getHeight()));
+            targetWidth = getWidth() * (targetHeight / getHeight());
         }
-
+        
         if (targetHeight == -1) {
-            targetHeight = (int)(getHeight() * ((double)targetWidth / getWidth()));
+            targetHeight = getHeight() * (targetWidth / getWidth());
         }
-
+        
         _image.scaleAbsolute(targetWidth, targetHeight);
     }
-
+    
     public Image getImage() {
         return _image;
-    }
-
-    public Object clone() {
-        return new ITextFSImage(Image.getInstance(_image));
     }
 }

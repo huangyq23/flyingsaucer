@@ -69,7 +69,7 @@ public class DirectoryLister {
             try {
                 File parent = file.getParentFile();
                 if ( parent != null ) {
-                    loc = GeneralUtil.htmlEscapeSpace(file.getAbsoluteFile().getParentFile().toURL().toExternalForm()).toString();
+                    loc = GeneralUtil.htmlEscapeSpace(file.getParentFile().toURL().toExternalForm()).toString();
                     sb.append("<a class='dir' href='" + loc + "'>Up to higher level directory</a>");
                 }
             } catch (MalformedURLException e) {
@@ -116,15 +116,9 @@ public class DirectoryLister {
 }
 
 /*
- * $Id$
+ * $Id: DirectoryLister.java,v 1.11 2007-01-29 21:41:46 pdoubleya Exp $
  *
- * $Log$
- * Revision 1.12  2008/05/30 16:07:06  pdoubleya
- * Issue 228: when setting document from a file, use file.getAbsoluteFile().getParentFile() to find the parent, in case the file provided has no directory or path; otherwise, file.getParentFile() returns null, and we have no way of determining a base URI. Covers at least the (reproducible) part of the issue.
- *
- * Revision 1.11  2007/01/29 21:41:46  pdoubleya
- * revert checkin
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.9  2006/07/31 14:20:54  pdoubleya
  * Bunch of cleanups and fixes. Now using a toolbar for actions, added Home button, next/prev navigation actions to facilitate demo file browsing, loading demo pages from a list, about dlg and link to user's manual.
  *

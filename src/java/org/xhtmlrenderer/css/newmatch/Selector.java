@@ -1,6 +1,6 @@
 /*
  * Selector.java
- * Copyright (c) 2004, 2005 Torbjï¿½rn Gannholm
+ * Copyright (c) 2004, 2005 Torbjörn Gannholm
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -31,16 +31,16 @@ import java.util.logging.Level;
  * A Selector is really a chain of CSS selectors that all need to be valid for
  * the selector to match.
  *
- * @author Torbjï¿½rn Gannholm
+ * @author Torbjörn Gannholm
  */
 public class Selector {
+
     private Ruleset _parent;
     private Selector chainedSelector = null;
     private Selector siblingSelector = null;
 
     private int _axis;
     private String _name;
-    private String _namespaceURI;
     private int _pc = 0;
     private String _pe;
 
@@ -86,7 +86,7 @@ public class Selector {
                 return false;
             }
         }
-        if (_name == null || treeRes.matchesElement(e, _namespaceURI, _name)) {
+        if (_name == null || _name.equals(treeRes.getElementName(e))) {
             if (conditions != null) {
                 // all conditions need to be true
                 for (java.util.Iterator i = conditions.iterator(); i.hasNext();) {
@@ -160,30 +160,6 @@ public class Selector {
         _specificityC++;
         addCondition(Condition.createFirstChildCondition());
     }
-    
-    /**
-     * the CSS condition that element has pseudo-class :last-child
-     */
-    public void addLastChildCondition() {
-        _specificityC++;
-        addCondition(Condition.createLastChildCondition());
-    }
-    
-    /**
-     * the CSS condition that element has pseudo-class :even
-     */
-    public void addEvenChildCondition() {
-        _specificityC++;
-        addCondition(Condition.createEvenChildCondition());
-    }
-    
-    /**
-     * the CSS condition that element has pseudo-class :odd
-     */
-    public void addOddChildCondition() {
-        _specificityC++;
-        addCondition(Condition.createOddChildCondition());
-    }
 
     /**
      * the CSS condition :lang(Xx)
@@ -212,57 +188,33 @@ public class Selector {
     /**
      * the CSS condition [attribute]
      */
-    public void addAttributeExistsCondition(String namespaceURI, String name) {
+    public void addAttributeExistsCondition(String name) {
         _specificityC++;
-        addCondition(Condition.createAttributeExistsCondition(namespaceURI, name));
+        addCondition(Condition.createAttributeExistsCondition(name));
     }
 
     /**
      * the CSS condition [attribute=value]
      */
-    public void addAttributeEqualsCondition(String namespaceURI, String name, String value) {
+    public void addAttributeEqualsCondition(String name, String value) {
         _specificityC++;
-        addCondition(Condition.createAttributeEqualsCondition(namespaceURI, name, value));
-    }
-    
-    /**
-     * the CSS condition [attribute^=value]
-     */
-    public void addAttributePrefixCondition(String namespaceURI, String name, String value) {
-        _specificityC++;
-        addCondition(Condition.createAttributePrefixCondition(namespaceURI, name, value));
-    }
-    
-    /**
-     * the CSS condition [attribute$=value]
-     */
-    public void addAttributeSuffixCondition(String namespaceURI, String name, String value) {
-        _specificityC++;
-        addCondition(Condition.createAttributeSuffixCondition(namespaceURI, name, value));
-    }
-    
-    /**
-     * the CSS condition [attribute*=value]
-     */
-    public void addAttributeSubstringCondition(String namespaceURI, String name, String value) {
-        _specificityC++;
-        addCondition(Condition.createAttributeSubstringCondition(namespaceURI, name, value));
+        addCondition(Condition.createAttributeEqualsCondition(name, value));
     }
 
     /**
      * the CSS condition [attribute~=value]
      */
-    public void addAttributeMatchesListCondition(String namespaceURI, String name, String value) {
+    public void addAttributeMatchesListCondition(String name, String value) {
         _specificityC++;
-        addCondition(Condition.createAttributeMatchesListCondition(namespaceURI, name, value));
+        addCondition(Condition.createAttributeMatchesListCondition(name, value));
     }
 
     /**
      * the CSS condition [attribute|=value]
      */
-    public void addAttributeMatchesFirstPartCondition(String namespaceURI, String name, String value) {
+    public void addAttributeMatchesFirstPartCondition(String name, String value) {
         _specificityC++;
-        addCondition(Condition.createAttributeMatchesFirstPartCondition(namespaceURI, name, value));
+        addCondition(Condition.createAttributeMatchesFirstPartCondition(name, value));
     }
 
     /**
@@ -476,10 +428,6 @@ public class Selector {
     
     public void setSiblingSelector(Selector selector) {
         siblingSelector = selector;
-    }
-    
-    public void setNamespaceURI(String namespaceURI) {
-        _namespaceURI = namespaceURI;
     }
 }
 

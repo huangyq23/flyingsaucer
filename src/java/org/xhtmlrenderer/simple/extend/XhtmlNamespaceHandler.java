@@ -61,16 +61,8 @@ public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
             return applyTableRowStyles(e);
         } else if (e.getNodeName().equals("img")) {
             return applyImgStyles(e);
-        } else if (e.getNodeName().equals("p") || e.getNodeName().equals("div")) {
-            return applyBlockAlign(e);
         }
         return "";
-    }
-    
-    private String applyBlockAlign(Element e) {
-        StringBuffer style = new StringBuffer();
-        applyTextAlign(e, style);
-        return style.toString();
     }
     
     private String applyImgStyles(Element e) {
@@ -108,7 +100,7 @@ public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
             style.append(convertToLength(s));
             style.append(";");
         }        
-        applyTableContentAlign(e, style);
+        applyAlignment(e, style);
         s = getAttribute(e, "bgcolor");
         if (s != null) {
             s = s.toLowerCase();
@@ -175,7 +167,7 @@ public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
     
     private String applyTableRowStyles(Element e) {
         StringBuffer style = new StringBuffer();
-        applyTableContentAlign(e, style);
+        applyAlignment(e, style);
         return style.toString();
     }
     
@@ -194,21 +186,7 @@ public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
         }
     }
     
-    private void applyTextAlign(Element e, StringBuffer style) {
-        String s;
-        s = getAttribute(e, "align");
-        if (s != null) {
-            s = s.toLowerCase().trim();
-            if (s.equals("left") || s.equals("right") || 
-                    s.equals("center") || s.equals("justify")) {
-                style.append("text-align: ");
-                style.append(s);
-                style.append(";");
-            }
-        }
-    }
-    
-    private void applyTableContentAlign(Element e, StringBuffer style) {
+    private void applyAlignment(Element e, StringBuffer style) {
         String s;
         s = getAttribute(e, "align");
         if (s != null) {

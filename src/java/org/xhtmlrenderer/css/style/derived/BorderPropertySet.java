@@ -2,10 +2,11 @@ package org.xhtmlrenderer.css.style.derived;
 
 import org.xhtmlrenderer.css.constants.CSSName;
 import org.xhtmlrenderer.css.constants.IdentValue;
-import org.xhtmlrenderer.css.parser.FSColor;
 import org.xhtmlrenderer.css.style.CalculatedStyle;
 import org.xhtmlrenderer.css.style.CssContext;
 import org.xhtmlrenderer.newtable.CollapsedBorderValue;
+
+import java.awt.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -15,17 +16,17 @@ import org.xhtmlrenderer.newtable.CollapsedBorderValue;
  * To change this template use File | Settings | File Templates.
  */
 public class BorderPropertySet extends RectPropertySet {
-    public static final BorderPropertySet EMPTY_BORDER = new BorderPropertySet(0.0f, 0.0f, 0.0f, 0.0f);
+    public static final BorderPropertySet ALL_ZEROS = new BorderPropertySet(0.0f, 0.0f, 0.0f, 0.0f);
     
     private IdentValue _topStyle;
     private IdentValue _rightStyle;
     private IdentValue _bottomStyle;
     private IdentValue _leftStyle;
 
-    private FSColor _topColor;
-    private FSColor _rightColor;
-    private FSColor _bottomColor;
-    private FSColor _leftColor;
+    private Color _topColor;
+    private Color _rightColor;
+    private Color _bottomColor;
+    private Color _leftColor;
 
     public BorderPropertySet(BorderPropertySet border) {
         this(border.top(), border.right(), border.bottom(), border.left());
@@ -114,11 +115,29 @@ public class BorderPropertySet extends RectPropertySet {
      */
     public BorderPropertySet lighten(IdentValue style) {
         BorderPropertySet bc = new BorderPropertySet(this);
-        bc._topColor = _topColor == null ? null : _topColor.lightenColor();
-        bc._bottomColor = _bottomColor == null ? null : _bottomColor.lightenColor();
-        bc._leftColor = _leftColor == null ? null : _leftColor.lightenColor();
-        bc._rightColor = _rightColor == null ? null : _rightColor.lightenColor();
+        bc._topColor = lightenColor(_topColor);
+        bc._bottomColor = lightenColor(_bottomColor);
+        bc._leftColor = lightenColor(_leftColor);
+        bc._rightColor = lightenColor(_rightColor);
+
         return bc;
+    }
+    
+    private Color lightenColor(Color color) {
+        if (color == null) {
+            return null;
+        }
+        
+        float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
+        float hBase = hsb[0];
+        float sBase = hsb[1];
+        float bBase = hsb[2];
+        
+        float hLighter = hBase;
+        float sLighter = 0.35f*bBase*sBase;
+        float bLighter = 0.6999f + 0.3f*bBase;
+        
+        return Color.getHSBColor(hLighter, sLighter, bLighter);
     }
 
     /**
@@ -129,11 +148,28 @@ public class BorderPropertySet extends RectPropertySet {
      */
     public BorderPropertySet darken(IdentValue style) {
         BorderPropertySet bc = new BorderPropertySet(this);
-        bc._topColor = _topColor == null ? null : _topColor.darkenColor();
-        bc._bottomColor = _bottomColor == null ? null : _bottomColor.darkenColor();
-        bc._leftColor = _leftColor == null ? null : _leftColor.darkenColor();
-        bc._rightColor = _rightColor == null ? null : _rightColor.darkenColor();
+        bc._topColor = darkenColor(_topColor);
+        bc._bottomColor = darkenColor(_bottomColor);
+        bc._leftColor = darkenColor(_leftColor);
+        bc._rightColor = darkenColor(_rightColor);
         return bc;
+    }
+    
+    private Color darkenColor(Color color) {
+        if (color == null) {
+            return null;
+        }
+        
+        float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
+        float hBase = hsb[0];
+        float sBase = hsb[1];
+        float bBase = hsb[2];
+        
+        float hDarker = hBase;
+        float sDarker = sBase;
+        float bDarker = 0.56f*bBase;
+        
+        return Color.getHSBColor(hDarker, sDarker, bDarker);
     }
 
     public static BorderPropertySet newInstance(
@@ -179,25 +215,20 @@ public class BorderPropertySet extends RectPropertySet {
         return _leftStyle;
     }
 
-    public FSColor topColor() {
+    public Color topColor() {
         return _topColor;
     }
 
-    public FSColor rightColor() {
+    public Color rightColor() {
         return _rightColor;
     }
 
-    public FSColor bottomColor() {
+    public Color bottomColor() {
         return _bottomColor;
     }
 
-    public FSColor leftColor() {
+    public Color leftColor() {
         return _leftColor;
     }
-    
-    public boolean hasHidden() {
-        return _topStyle == IdentValue.HIDDEN || _rightStyle == IdentValue.HIDDEN ||
-                    _bottomStyle == IdentValue.HIDDEN || _leftStyle == IdentValue.HIDDEN;
-    }    
 }
 

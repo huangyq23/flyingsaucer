@@ -268,12 +268,9 @@ public class FSCssValue implements org.w3c.dom.css.CSSPrimitiveValue {
 }// end class
 
 /*
- * $Id$
+ * $Id: FSCssValue.java,v 1.7 2005-12-28 00:50:53 peterbrant Exp $
  *
- * $Log$
- * Revision 1.7  2005/12/28 00:50:53  peterbrant
- * Continue ripping out first try at pagination / Minor method name refactoring
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.6  2005/05/08 13:02:38  tobega
  * Fixed a bug whereby styles could get lost for inline elements, notably if root element was inline. Did a few other things which probably has no importance at this moment, e.g. refactored out some unused stuff.
  *

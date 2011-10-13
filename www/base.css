@@ -14,18 +14,12 @@
     letter-spacing: normal;
 }
 
-#fs h2, #fs h3 {
-    color: black;
-    background-color: white;
-}
-
 #fs h2 {
-    text-decoration: underline;
+    text-decoration: underline;	
 }
 
 .fs_heading {
     clear: both;
-    background-color: white;
 }
 
 body, #fs {
@@ -175,15 +169,11 @@ div.thumbnail img {
   border: none;	
 }
 
-a#fs_logo {
+div#fs_logo {
   background: url('/images/new_saucer.png') no-repeat top left transparent;
-  float: left; 
-  width: 180px; 
-  height: 180px;
-  display: block;  
 }
 
-a#fs_logo:hover {
+div#fs_logo:hover {
   background: url('/images/acid2.png') no-repeat center center transparent;
 }
 

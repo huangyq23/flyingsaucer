@@ -19,7 +19,7 @@
  */
 package org.xhtmlrenderer.swing;
 
-import java.awt.*;
+import java.awt.Point;
 
 import javax.swing.JComponent;
 
@@ -28,7 +28,6 @@ import org.xhtmlrenderer.layout.LayoutContext;
 
 public class SwingReplacedElement implements ReplacedElement {
     private JComponent _component;
-    private Dimension intrinsicSize;
     
     public SwingReplacedElement(JComponent component) {
         _component = component;
@@ -37,17 +36,13 @@ public class SwingReplacedElement implements ReplacedElement {
     public JComponent getJComponent() {
         return _component;
     }
-
-    public void setIntrinsicSize(Dimension intrinsicSize){
-        this.intrinsicSize = intrinsicSize;
-    }
     
     public int getIntrinsicHeight() {
-        return intrinsicSize == null ? _component.getSize().height : intrinsicSize.height;
+        return _component.getBounds().height;
     }
-
+    
     public int getIntrinsicWidth() {
-        return intrinsicSize == null ? _component.getSize().width : intrinsicSize.width;
+        return _component.getBounds().width;
     }
     
     public void setLocation(int x, int y) {
@@ -60,19 +55,11 @@ public class SwingReplacedElement implements ReplacedElement {
     
     public void detach(LayoutContext c) {
         if (c.isInteractive()) {
-            ((RootPanel)c.getCanvas()).remove(getJComponent());
+            c.getCanvas().remove(getJComponent());
         }
     }
     
     public boolean isRequiresInteractivePaint() {
         return false;
     }
-
-	public int getBaseline() {
-		return 0;
-	}
-
-	public boolean hasBaseline() {
-		return false;
-	}
 }

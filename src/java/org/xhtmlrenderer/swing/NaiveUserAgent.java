@@ -19,26 +19,24 @@
  */
 package org.xhtmlrenderer.swing;
 
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-
-import javax.imageio.ImageIO;
-
-import org.xhtmlrenderer.event.DocumentListener;
-import org.xhtmlrenderer.extend.UserAgentCallback;
 import org.xhtmlrenderer.resource.CSSResource;
 import org.xhtmlrenderer.resource.ImageResource;
 import org.xhtmlrenderer.resource.XMLResource;
 import org.xhtmlrenderer.util.XRLog;
+import org.xhtmlrenderer.extend.UserAgentCallback;
+import org.xhtmlrenderer.event.DocumentListener;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.FileNotFoundException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.LinkedHashMap;
+import java.util.Iterator;
 
 
 /**
@@ -56,7 +54,7 @@ import org.xhtmlrenderer.util.XRLog;
  * <p>This class is meant as a starting point--it will work out of the box, but you should really implement your
  * own, tuned to your application's needs.
  *
- * @author Torbjorn Gannholm
+ * @author Torbj�rn Gannholm
  */
 public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 	private static final int DEFAULT_IMAGE_CACHE_SIZE = 16;
@@ -69,7 +67,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 	private String _baseURL;
 
 
-    /**
+	/**
      * Creates a new instance of NaiveUserAgent with a max image cache of 16 images.
      */
     public NaiveUserAgent() {
@@ -152,7 +150,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 	 * @return An ImageResource containing the image.
 	 */
 	public ImageResource getImageResource(String uri) {
-        ImageResource ir;
+        ImageResource ir = null;
         uri = resolveURI(uri);
         ir = (ImageResource) _imageCache.get(uri);
         //TODO: check that cached image is still valid
@@ -170,12 +168,6 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
                     XRLog.exception("Can't read image file; image at URI '" + uri + "' not found");
                 } catch (IOException e) {
                     XRLog.exception("Can't read image file; unexpected problem for URI '" + uri + "'", e);
-                } finally {
-                    try {
-                        is.close();
-                    } catch (IOException e) {
-                        // ignore
-                    }
                 }
             }
         }
@@ -188,13 +180,13 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 	/**
 	 * Factory method to generate ImageResources from a given Image. May be overridden in subclass.
 
-	 * @param uri The URI for the image, resolved to an absolute URI.
+	 * @param uri The URI for the image, resolved to an absolute URI. 
 	 * @param img The image to package; may be null (for example, if image could not be loaded).
 	 *
 	 * @return An ImageResource containing the image.
 	 */
 	protected ImageResource createImageResource(String uri, Image img) {
-		return new ImageResource(uri, AWTFSImage.createImage(img));
+		return new ImageResource(AWTFSImage.createLegacyImage(img));
 	}
 
 	/**
@@ -218,32 +210,6 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
             }
         }
         return xmlResource;
-    }
-
-    public byte[] getBinaryResource(String uri) {
-        InputStream is = resolveAndOpenStream(uri);
-        try {
-            ByteArrayOutputStream result = new ByteArrayOutputStream();
-            byte[] buf = new byte[10240];
-            int i;
-            while ( (i = is.read(buf)) != -1) {
-                result.write(buf, 0, i);
-            }
-            is.close();
-            is = null;
-
-            return result.toByteArray();
-        } catch (IOException e) {
-            return null;
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
-        }
     }
 
 
@@ -290,17 +256,11 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
                 }
             }
         }
-        // test if the URI is valid; if not, try to assign the base url as its parent
         try {
-            return new URL(uri).toString();
-        } catch (MalformedURLException e) {
-            XRLog.load(uri + " is not a URL; may be relative. Testing using parent URL " + _baseURL);
-            try {
-                URL result = new URL(new URL(_baseURL), uri);
-                ret = result.toString();
-            } catch (MalformedURLException e1) {
-                XRLog.exception("The default NaiveUserAgent cannot resolve the URL " + uri + " with base URL " + _baseURL);
-            }
+            URL result = new URL(new URL(_baseURL), uri);
+            ret = result.toString();
+        } catch (MalformedURLException e1) {
+            XRLog.exception("The default NaiveUserAgent cannot resolve the URL " + uri + " with base URL " + _baseURL);
         }
         return ret;
     }
@@ -324,27 +284,9 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 }
 
 /*
- * $Id$
+ * $Id: NaiveUserAgent.java,v 1.35 2007-06-20 12:24:31 pdoubleya Exp $
  *
- * $Log$
- * Revision 1.40  2009/05/15 16:20:10  pdoubleya
- * ImageResource now tracks the URI for the image that was created and handles mutable images.
- *
- * Revision 1.39  2009/04/12 11:16:51  pdoubleya
- * Remove proposed patch for URLs that are incorrectly handled on Windows; need a more reliable solution.
- *
- * Revision 1.38  2008/04/30 23:14:18  peterbrant
- * Do a better job of cleaning up open file streams (patch by Christophe Marchand)
- *
- * Revision 1.37  2007/11/23 07:03:30  pdoubleya
- * Applied patch from N. Barozzi to allow either toolkit or buffered images to be used, see https://xhtmlrenderer.dev.java.net/servlets/ReadMsg?list=dev&msgNo=3847
- *
- * Revision 1.36  2007/10/31 23:14:43  peterbrant
- * Add rudimentary support for @font-face rules
- *
- * Revision 1.35  2007/06/20 12:24:31  pdoubleya
- * Fix bug in shrink cache, trying to modify iterator without using safe remove().
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.34  2007/06/19 21:25:41  pdoubleya
  * Cleanup for caching in NUA, making it more suitable to use as a reusable UAC. NUA is also now a document listener and uses this to try and trim its cache down. PanelManager and iTextUA are now NUA subclasses.
  *

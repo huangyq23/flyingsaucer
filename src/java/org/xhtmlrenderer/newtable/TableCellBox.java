@@ -36,8 +36,6 @@ import org.xhtmlrenderer.layout.LayoutContext;
 import org.xhtmlrenderer.render.BlockBox;
 import org.xhtmlrenderer.render.BorderPainter;
 import org.xhtmlrenderer.render.Box;
-import org.xhtmlrenderer.render.ContentLimit;
-import org.xhtmlrenderer.render.ContentLimitContainer;
 import org.xhtmlrenderer.render.PageBox;
 import org.xhtmlrenderer.render.RenderingContext;
 
@@ -81,19 +79,11 @@ public class TableCellBox extends BlockBox {
     public TableCellBox() {
     }
     
-    public BlockBox copyOf() {
-        TableCellBox result = new TableCellBox();
-        result.setStyle(getStyle());
-        result.setElement(getElement());
-        
-        return result;
-    }
-    
     public BorderPropertySet getBorder(CssContext cssCtx) {
         if (getTable().getStyle().isCollapseBorders()) {
             // Should always be non-null, but might not be if layout code crashed
             return _collapsedLayoutBorder == null ? 
-                    BorderPropertySet.EMPTY_BORDER : _collapsedLayoutBorder;
+                    BorderPropertySet.ALL_ZEROS : _collapsedLayoutBorder;
         } else {
             return super.getBorder(cssCtx);
         }
@@ -207,10 +197,6 @@ public class TableCellBox extends BlockBox {
         }
     }
     
-    public int calcBlockBaseline(LayoutContext c) {
-        return super.calcBaseline(c);
-    }
-    
     public void moveContent(LayoutContext c, final int deltaY) {
         for (int i = 0; i < getChildCount(); i++) {
             Box b = getChild(i);
@@ -228,10 +214,6 @@ public class TableCellBox extends BlockBox {
     }
     
     public boolean isPageBreaksChange(LayoutContext c, int posDeltaY) {
-        if (! c.isPageBreaksAllowed()) {
-            return false;
-        }
-        
         PageBox page = c.getRootLayer().getFirstPage(c, this);
         
         int bottomEdge = getAbsY() + getChildrenHeight();
@@ -261,129 +243,54 @@ public class TableCellBox extends BlockBox {
     
     public void paintBackground(RenderingContext c) {
         if (isPaintBackgroundsAndBorders() && getStyle().isVisible()) {
-            Rectangle bounds;
-            if (c.isPrint() && getTable().getStyle().isPaginateTable()) {
-                bounds = getContentLimitedBorderEdge(c);
-            } else {
-                bounds = getPaintingBorderEdge(c);    
+            Rectangle bounds = getPaintingBorderEdge(c);
+            Rectangle imageContainer;
+            
+            TableColumn column = getTable().colElement(getCol());
+            if (column != null) {
+                c.getOutputDevice().paintBackground(
+                        c, column.getStyle(), 
+                        bounds, getTable().getColumnBounds(c, getCol()));
             }
             
-            if (bounds != null) {
-                paintBackgroundStack(c, bounds);
-            }
+            Box row = getParent();
+            Box section = row.getParent();
+            
+            CalculatedStyle tableStyle = getTable().getStyle();
+            
+            CalculatedStyle sectionStyle = section.getStyle();
+            
+            imageContainer = section.getPaintingBorderEdge(c);
+            imageContainer.y += tableStyle.getBorderVSpacing(c);
+            imageContainer.height -= tableStyle.getBorderVSpacing(c);
+            imageContainer.x += tableStyle.getBorderHSpacing(c);
+            imageContainer.width -= 2*tableStyle.getBorderHSpacing(c);
+            
+            c.getOutputDevice().paintBackground(c, sectionStyle, bounds, imageContainer);
+            
+            CalculatedStyle rowStyle = row.getStyle();
+            
+            imageContainer = row.getPaintingBorderEdge(c);
+            imageContainer.x += tableStyle.getBorderHSpacing(c);
+            imageContainer.width -= 2*tableStyle.getBorderHSpacing(c);
+            
+            c.getOutputDevice().paintBackground(c, rowStyle, bounds, imageContainer);
+            
+            
+            super.paintBackground(c);
         }
-    }
-
-    private void paintBackgroundStack(RenderingContext c, Rectangle bounds) {
-        Rectangle imageContainer;
-        
-        BorderPropertySet border = getStyle().getBorder(c);
-        TableColumn column = getTable().colElement(getCol());
-        if (column != null) {
-            c.getOutputDevice().paintBackground(
-                    c, column.getStyle(), 
-                    bounds, getTable().getColumnBounds(c, getCol()),
-                    border);
-        }
-        
-        Box row = getParent();
-        Box section = row.getParent();
-        
-        CalculatedStyle tableStyle = getTable().getStyle();
-        
-        CalculatedStyle sectionStyle = section.getStyle();
-        
-        imageContainer = section.getPaintingBorderEdge(c);
-        imageContainer.y += tableStyle.getBorderVSpacing(c);
-        imageContainer.height -= tableStyle.getBorderVSpacing(c);
-        imageContainer.x += tableStyle.getBorderHSpacing(c);
-        imageContainer.width -= 2*tableStyle.getBorderHSpacing(c);
-        
-        c.getOutputDevice().paintBackground(c, sectionStyle, bounds, imageContainer, border);
-        
-        CalculatedStyle rowStyle = row.getStyle();
-        
-        imageContainer = row.getPaintingBorderEdge(c);
-        imageContainer.x += tableStyle.getBorderHSpacing(c);
-        imageContainer.width -= 2*tableStyle.getBorderHSpacing(c);
-        
-        c.getOutputDevice().paintBackground(c, rowStyle, bounds, imageContainer, border);
-        
-        c.getOutputDevice().paintBackground(c, getStyle(), bounds, getPaintingBorderEdge(c), border);
     }
     
     public void paintBorder(RenderingContext c) {
         if (isPaintBackgroundsAndBorders() && ! hasCollapsedPaintingBorder()) {
             // Collapsed table borders are painted separately
-            if (c.isPrint() && getTable().getStyle().isPaginateTable() && getStyle().isVisible()) {
-                Rectangle bounds = getContentLimitedBorderEdge(c);
-                if (bounds != null) {
-                    c.getOutputDevice().paintBorder(c, getStyle(), bounds, getBorderSides());
-                }
-            } else {
-                super.paintBorder(c);
-            }
+            super.paintBorder(c);
         }
     }
     
     public void paintCollapsedBorder(RenderingContext c, int side) {
         c.getOutputDevice().paintCollapsedBorder(
                 c, getCollapsedPaintingBorder(), getCollapsedBorderBounds(c), side);
-    }
-    
-    private Rectangle getContentLimitedBorderEdge(RenderingContext c) {
-        Rectangle result = getPaintingBorderEdge(c);
-        
-        TableSectionBox section = getSection();
-        if (section.isHeader() || section.isFooter()) {
-            return result;
-        }
-        
-        ContentLimitContainer contentLimitContainer = ((TableRowBox)getParent()).getContentLimitContainer();
-        ContentLimit limit = contentLimitContainer.getContentLimit(c.getPageNo());
-        
-        if (limit == null) {
-            return null;
-        } else {
-            if (limit.getTop() == ContentLimit.UNDEFINED || 
-                    limit.getBottom() == ContentLimit.UNDEFINED) {
-                return result;
-            }
-
-            int top;
-            if (c.getPageNo() == contentLimitContainer.getInitialPageNo()) {
-                top = result.y;
-            } else {
-                top = limit.getTop() - ((TableRowBox)getParent()).getExtraSpaceTop() ;
-            }
-            
-            int bottom;
-            if (c.getPageNo() == contentLimitContainer.getLastPageNo()) {
-                bottom = result.y + result.height;
-            } else {
-                bottom = limit.getBottom() + ((TableRowBox)getParent()).getExtraSpaceBottom(); 
-            }
-            
-            result.y = top;
-            result.height = bottom - top;
-            
-            return result;
-        }
-    }  
-    
-    public Rectangle getChildrenClipEdge(RenderingContext c) {
-        if (c.isPrint() && getTable().getStyle().isPaginateTable()) {
-            Rectangle bounds = getContentLimitedBorderEdge(c);
-            if (bounds != null) {
-                BorderPropertySet border = getBorder(c);
-                RectPropertySet padding = getPadding(c);
-                bounds.y += (int)border.top() + (int)padding.top();
-                bounds.height -= (int)border.height() + (int)padding.height();
-                return bounds;
-            }
-        } 
-        
-        return super.getChildrenClipEdge(c);
     }
     
     protected boolean isFixedWidthAdvisoryOnly() {
@@ -420,22 +327,18 @@ public class TableCellBox extends BlockBox {
     public static CollapsedBorderValue compareBorders(
             CollapsedBorderValue border1, CollapsedBorderValue border2, boolean returnNullOnEqual) {
         // Sanity check the values passed in.  If either is null, return the other.
-        if (!border2.defined()) {
+        if (!border2.exists()) {
             return border1;
         }
         
-        if (!border1.defined()) {
+        if (!border1.exists()) {
             return border2;
         }
         
         // Rule #1 above.
-        if (border1.style() == IdentValue.HIDDEN)
-        {
-            return border1;
-        }
-        if (border2.style() == IdentValue.HIDDEN)
-        {
-            return border2;
+        if (border1.style() == IdentValue.HIDDEN || border2.style() == IdentValue.HIDDEN) {
+            return CollapsedBorderValue.NO_BORDER; // No border should exist at
+                                                  // this location.
         }
 
         // Rule #2 above. A style of 'none' has lowest priority and always loses
@@ -484,21 +387,21 @@ public class TableCellBox extends BlockBox {
         if (prevCell != null) {
             result = compareBorders(
                     result, CollapsedBorderValue.borderRight(prevCell.getStyle().getBorder(c), BCELL));
-            if (result.hidden()) {
+            if (!result.exists()) {
                 return result;
             }
         } else if (getCol() == 0) {
             // (3) Our row's left border.
             result = compareBorders(
                     result, CollapsedBorderValue.borderLeft(getParent().getStyle().getBorder(c), BROW));
-            if (result.hidden()) {
+            if (!result.exists()) {
                 return result;
             }
 
             // (4) Our row group's left border.
             result = compareBorders(
                     result, CollapsedBorderValue.borderLeft(getSection().getStyle().getBorder(c), BROWGROUP));
-            if (result.hidden()) {
+            if (!result.exists()) {
                 return result;
             }
         }
@@ -508,7 +411,7 @@ public class TableCellBox extends BlockBox {
         if (colElt != null) {
             result = compareBorders(
                     result, CollapsedBorderValue.borderLeft(colElt.getStyle().getBorder(c), BCOL));
-            if (result.hidden()) {
+            if (!result.exists()) {
                 return result;
             }
         }
@@ -519,7 +422,7 @@ public class TableCellBox extends BlockBox {
             if (colElt != null) {
                 result = compareBorders(
                         result, CollapsedBorderValue.borderRight(colElt.getStyle().getBorder(c), BCOL));
-                if (result.hidden()) {
+                if (!result.exists()) {
                     return result;
                 }
             }
@@ -529,7 +432,7 @@ public class TableCellBox extends BlockBox {
             // (7) The table's left border.
             result = compareBorders(
                     result, CollapsedBorderValue.borderLeft(getTable().getStyle().getBorder(c), BTABLE));
-            if (result.hidden()) {
+            if (!result.exists()) {
                 return result;
             }
         }
@@ -556,7 +459,7 @@ public class TableCellBox extends BlockBox {
             if (nextCell != null) {
                 result = compareBorders(result, 
                         CollapsedBorderValue.borderLeft(nextCell.getStyle().getBorder(c), BCELL));
-                if (result.hidden()) {
+                if (!result.exists()) {
                     return result;
                 }
             }
@@ -564,14 +467,14 @@ public class TableCellBox extends BlockBox {
             // (3) Our row's right border.
             result = compareBorders(result, 
                     CollapsedBorderValue.borderRight(getParent().getStyle().getBorder(c), BROW));
-            if (result.hidden()) {
+            if (!result.exists()) {
                 return result;
             }
 
             // (4) Our row group's right border.
             result = compareBorders(result, 
                     CollapsedBorderValue.borderRight(getSection().getStyle().getBorder(c), BROWGROUP));
-            if (result.hidden()) {
+            if (!result.exists()) {
                 return result;
             }
         }
@@ -581,7 +484,7 @@ public class TableCellBox extends BlockBox {
         if (colElt != null) {
             result = compareBorders(result, 
                     CollapsedBorderValue.borderRight(colElt.getStyle().getBorder(c), BCOL));
-            if (result.hidden()) {
+            if (!result.exists()) {
                 return result;
             }
         }
@@ -592,7 +495,7 @@ public class TableCellBox extends BlockBox {
             if (colElt != null) {
                 result = compareBorders(result, 
                         CollapsedBorderValue.borderLeft(colElt.getStyle().getBorder(c), BCOL));
-                if (result.hidden()) {
+                if (!result.exists()) {
                     return result;
                 }
             }
@@ -600,7 +503,7 @@ public class TableCellBox extends BlockBox {
             // (7) The table's right border.
             result = compareBorders(result, 
                     CollapsedBorderValue.borderRight(tableElt.getStyle().getBorder(c), BTABLE));
-            if (result.hidden()) {
+            if (!result.exists()) {
                 return result;
             }
         }
@@ -619,7 +522,7 @@ public class TableCellBox extends BlockBox {
             // (2) A previous cell's bottom border.
             result = compareBorders(result, 
                         CollapsedBorderValue.borderBottom(prevCell.getStyle().getBorder(c), BCELL));
-            if (result.hidden()) {
+            if (!result.exists()) {
                 return result;
             }
         }
@@ -627,7 +530,7 @@ public class TableCellBox extends BlockBox {
         // (3) Our row's top border.
         result = compareBorders(result, 
                     CollapsedBorderValue.borderTop(getParent().getStyle().getBorder(c), BROW));
-        if (result.hidden()) {
+        if (!result.exists()) {
             return result;
         }
 
@@ -643,7 +546,7 @@ public class TableCellBox extends BlockBox {
             if (prevRow != null) {
                 result = compareBorders(result, 
                             CollapsedBorderValue.borderBottom(prevRow.getStyle().getBorder(c), BROW));
-                if (result.hidden()) {
+                if (!result.exists()) {
                     return result;
                 }
             }
@@ -655,7 +558,7 @@ public class TableCellBox extends BlockBox {
             // (5) Our row group's top border.
             result = compareBorders(result, 
                         CollapsedBorderValue.borderTop(currSection.getStyle().getBorder(c), BROWGROUP));
-            if (result.hidden()) {
+            if (!result.exists()) {
                 return result;
             }
 
@@ -664,7 +567,7 @@ public class TableCellBox extends BlockBox {
             if (currSection != null) {
                 result = compareBorders(result, 
                             CollapsedBorderValue.borderBottom(currSection.getStyle().getBorder(c), BROWGROUP));
-                if (result.hidden()) {
+                if (!result.exists()) {
                     return result;
                 }
             }
@@ -676,7 +579,7 @@ public class TableCellBox extends BlockBox {
             if (colElt != null) {
                 result = compareBorders(result, 
                             CollapsedBorderValue.borderTop(colElt.getStyle().getBorder(c), BCOL));
-                if (result.hidden()) {
+                if (!result.exists()) {
                     return result;
                 }
             }
@@ -684,7 +587,7 @@ public class TableCellBox extends BlockBox {
             // (9) The table's top border.
             result = compareBorders(result, 
                         CollapsedBorderValue.borderTop(getTable().getStyle().getBorder(c), BTABLE));
-            if (result.hidden()) {
+            if (!result.exists()) {
                 return result;
             }
         }
@@ -703,7 +606,7 @@ public class TableCellBox extends BlockBox {
             // (2) A following cell's top border.
             result = compareBorders(result, 
                         CollapsedBorderValue.borderTop(nextCell.getStyle().getBorder(c), BCELL));
-            if (result.hidden()) {
+            if (!result.exists()) {
                 return result;
             }
         }
@@ -711,7 +614,7 @@ public class TableCellBox extends BlockBox {
         // (3) Our row's bottom border. (FIXME: Deal with rowspan!)
         result = compareBorders(result, 
                     CollapsedBorderValue.borderBottom(getParent().getStyle().getBorder(c), BROW));
-        if (result.hidden()) {
+        if (!result.exists()) {
             return result;
         }
 
@@ -719,7 +622,7 @@ public class TableCellBox extends BlockBox {
         if (nextCell != null) {
             result = compareBorders(result, 
                         CollapsedBorderValue.borderTop(nextCell.getParent().getStyle().getBorder(c), BROW));
-            if (result.hidden()) {
+            if (!result.exists()) {
                 return result;
             }
         }
@@ -730,7 +633,7 @@ public class TableCellBox extends BlockBox {
             // (5) Our row group's bottom border.
             result = compareBorders(result, 
                         CollapsedBorderValue.borderBottom(currSection.getStyle().getBorder(c), BROWGROUP));
-            if (result.hidden()) {
+            if (!result.exists()) {
                 return result;
             }
 
@@ -739,7 +642,7 @@ public class TableCellBox extends BlockBox {
             if (currSection != null) {
                 result = compareBorders(result, 
                             CollapsedBorderValue.borderTop(currSection.getStyle().getBorder(c), BROWGROUP));
-                if (result.hidden()) {
+                if (!result.exists()) {
                     return result;
                 }
             }
@@ -751,7 +654,7 @@ public class TableCellBox extends BlockBox {
             if (colElt != null) {
                 result = compareBorders(result, 
                             CollapsedBorderValue.borderBottom(colElt.getStyle().getBorder(c), BCOL));
-                if (result.hidden()) {
+                if (!result.exists()) {
                     return result;
                 }
             }
@@ -759,7 +662,7 @@ public class TableCellBox extends BlockBox {
             // (9) The table's bottom border.
             result = compareBorders(result, 
                         CollapsedBorderValue.borderBottom(getTable().getStyle().getBorder(c), BTABLE));
-            if (result.hidden()) {
+            if (!result.exists()) {
                 return result;
             }
         }
@@ -855,15 +758,5 @@ public class TableCellBox extends BlockBox {
     
     protected boolean isAllowHeightToShrink() {
         return false;
-    } 
-    
-    public boolean isNeedsClipOnPaint(RenderingContext c) {
-        boolean result = super.isNeedsClipOnPaint(c);
-        if (result) {
-            return result;
-        }
-        
-        return c.isPrint() && getTable().getStyle().isPaginateTable() &&
-                ((TableRowBox)getParent()).getContentLimitContainer().isContainsMultiplePages();
-    }
+    }    
 }

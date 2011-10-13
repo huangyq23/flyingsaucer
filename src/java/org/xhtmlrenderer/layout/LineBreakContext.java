@@ -19,8 +19,6 @@
  */
 package org.xhtmlrenderer.layout;
 
-import org.w3c.dom.Text;
-
 /**
  * A bean which serves as a way for the layout code to pass information to the
  * line breaking code and for the line breaking code to pass instructions back
@@ -35,7 +33,6 @@ public class LineBreakContext {
     private boolean _needsNewLine;
     private int _width;
     private boolean _endsOnNL;
-    private Text _textNode;
     
     public int getLast() {
         return _master.length();
@@ -121,13 +118,5 @@ public class LineBreakContext {
 
     public void setEndsOnNL(boolean b) {
         _endsOnNL = b;
-    }
-
-    public Text getTextNode() {
-        return this._textNode;
-    }
-
-    public void setTextNode(Text _text) {
-        this._textNode = _text;
     }
 }

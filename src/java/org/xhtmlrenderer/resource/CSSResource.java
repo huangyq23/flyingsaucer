@@ -36,12 +36,9 @@ public class CSSResource extends AbstractResource {
 }
 
 /*
- * $Id$
+ * $Id: CSSResource.java,v 1.2 2005-06-25 19:27:47 tobega Exp $
  *
- * $Log$
- * Revision 1.2  2005/06/25 19:27:47  tobega
- * UAC now supplies Resources
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.1  2005/02/03 20:39:35  pdoubleya
  * Added to CVS.
  *

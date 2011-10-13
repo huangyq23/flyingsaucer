@@ -21,7 +21,6 @@
 package org.xhtmlrenderer.util;
 
 import java.io.File;
-import java.io.StringReader;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -38,13 +37,13 @@ public class XMLUtil {
     public static Document documentFromString(final String documentContents)
         throws Exception {
 
-        return createDocumentBuilder().parse(new InputSource(new StringReader(documentContents)));
+        return createDocumentBuilder().parse(new InputSource(documentContents));
     }
 
     public static Document documentFromFile(final String filename)
         throws Exception {
 
-        return createDocumentBuilder().parse(new File(filename).toURI().toURL().openStream());
+        return createDocumentBuilder().parse(new File(filename).toURL().openStream());
     }
 
     private static DocumentBuilder createDocumentBuilder()
@@ -54,18 +53,15 @@ public class XMLUtil {
         DocumentBuilder builder = fact.newDocumentBuilder();
 
         builder.setErrorHandler( null );
-
+        
         return builder;
     }
 }
 
 /*
- * $Id$
+ * $Id: XMLUtil.java,v 1.7 2007-05-23 00:12:18 peterbrant Exp $
  *
- * $Log$
- * Revision 1.7  2007/05/23 00:12:18  peterbrant
- * Code cleanup (patch from Sean Bright)
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.6  2006/07/26 18:18:16  pdoubleya
  * TODOs
  *

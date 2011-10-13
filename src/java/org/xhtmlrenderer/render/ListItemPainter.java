@@ -62,8 +62,7 @@ public class ListItemPainter {
         if (img != null) {
             StrutMetrics strutMetrics = box.getMarkerData().getStructMetrics();
             int x = getReferenceX(c, box);
-            // FIXME: findbugs possible loss of precision, cf. int / (float)2
-            x += -marker.getLayoutWidth() +
+            x += -marker.getLayoutWidth() + 
                     (marker.getLayoutWidth() / 2 - img.getWidth() / 2);
             c.getOutputDevice().drawImage(img, 
                     x,
@@ -104,7 +103,8 @@ public class ListItemPainter {
         StrutMetrics strutMetrics = box.getMarkerData().getStructMetrics();
         MarkerData.GlyphMarker marker = box.getMarkerData().getGlyphMarker();
         int x = getReferenceX(c, box);
-        x += -marker.getLayoutWidth();
+        x += -marker.getLayoutWidth() + 
+                (marker.getLayoutWidth() / 2 - marker.getDiameter() / 2);
         int y = getReferenceBaseline(c, box) 
             - (int)strutMetrics.getAscent() / 2 - marker.getDiameter() / 2;
         if (listStyle == IdentValue.DISC) {
@@ -135,18 +135,9 @@ public class ListItemPainter {
 }
 
 /*
- * $Id$
+ * $Id: ListItemPainter.java,v 1.37 2007-03-12 21:11:19 peterbrant Exp $
  *
- * $Log$
- * Revision 1.39  2009/05/09 15:13:11  pdoubleya
- * FindBugs: FIXME for possible loss of precision in float, int arithmetic
- *
- * Revision 1.38  2008/09/06 18:33:53  peterbrant
- * Make list marker display more like Safari and FF (patch from Mykola Gurov)
- *
- * Revision 1.37  2007/03/12 21:11:19  peterbrant
- * Documentation update
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.36  2007/02/07 16:33:22  peterbrant
  * Initial commit of rewritten table support and associated refactorings
  *

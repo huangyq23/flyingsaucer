@@ -19,10 +19,10 @@
  */
 package org.xhtmlrenderer.css.constants;
 
+import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.xhtmlrenderer.css.parser.FSColor;
 import org.xhtmlrenderer.css.style.CssContext;
 import org.xhtmlrenderer.css.style.FSDerivedValue;
 import org.xhtmlrenderer.util.XRRuntimeException;
@@ -54,12 +54,12 @@ import org.xhtmlrenderer.util.XRRuntimeException;
  */
 public class IdentValue implements FSDerivedValue {
     private static int maxAssigned = 0;
-
+    
     /**
      * Description of the Field
      */
     private final String ident;
-
+    
     public final int FS_ID;
 
     public final static IdentValue ABSOLUTE = addValue("absolute");
@@ -81,8 +81,6 @@ public class IdentValue implements FSDerivedValue {
     public final static IdentValue CLOSE_QUOTE = addValue("close-quote");
     public final static IdentValue COLLAPSE = addValue("collapse");
     public final static IdentValue COMPACT = addValue("compact");
-    public final static IdentValue CONTAIN = addValue("contain");
-    public final static IdentValue COVER = addValue("cover");
     public final static IdentValue DASHED = addValue("dashed");
     public final static IdentValue DECIMAL = addValue("decimal");
     public final static IdentValue DECIMAL_LEADING_ZERO = addValue("decimal-leading-zero");
@@ -118,7 +116,6 @@ public class IdentValue implements FSDerivedValue {
     public final static IdentValue JUSTIFY = addValue("justify");
     public final static IdentValue KATAKANA = addValue("katakana");
     public final static IdentValue KATAKANA_IROHA = addValue("katakana-iroha");
-    public final static IdentValue KEEP = addValue("keep");
     public final static IdentValue LANDSCAPE = addValue("landscape");
     public final static IdentValue LEFT = addValue("left");
     public final static IdentValue LIGHTER = addValue("lighter");
@@ -139,17 +136,17 @@ public class IdentValue implements FSDerivedValue {
     public final static IdentValue NONE = addValue("none");
     public final static IdentValue NORMAL = addValue("normal");
     public final static IdentValue NOWRAP = addValue("nowrap");
-    public final static IdentValue BREAK_WORD = addValue("break-word");
     public final static IdentValue OBLIQUE = addValue("oblique");
     public final static IdentValue OPEN_QUOTE = addValue("open-quote");
     public final static IdentValue OUTSET = addValue("outset");
     public final static IdentValue OUTSIDE = addValue("outside");
     public final static IdentValue OVERLINE = addValue("overline");
-    public final static IdentValue PAGINATE = addValue("paginate");
     public final static IdentValue POINTER = addValue("pointer");
     public final static IdentValue PORTRAIT = addValue("portrait");
     public final static IdentValue PRE = addValue("pre");
+    // HACK: pre-line/pre-wrap are not valid CSS values, but being used in CSS/demos. should prob be pre (PWW 25-01-05)
     public final static IdentValue PRE_LINE = addValue("pre-line");
+    // HACK: pre-line/pre-wrap are not valid CSS values, but being used in CSS/demos. should prob be pre (PWW 25-01-05)
     public final static IdentValue PRE_WRAP = addValue("pre-wrap");
     public final static IdentValue RELATIVE = addValue("relative");
     public final static IdentValue REPEAT = addValue("repeat");
@@ -190,7 +187,6 @@ public class IdentValue implements FSDerivedValue {
     public final static IdentValue VISIBLE = addValue("visible");
     public final static IdentValue CROSSHAIR = addValue("crosshair");
     public final static IdentValue DEFAULT = addValue("default");
-    public final static IdentValue EMBED = addValue("embed");
     public final static IdentValue E_RESIZE = addValue("e-resize");
     public final static IdentValue HELP = addValue("help");
     public final static IdentValue LARGE = addValue("large");
@@ -205,7 +201,6 @@ public class IdentValue implements FSDerivedValue {
     public final static IdentValue SE_RESIZE = addValue("se-resize");
     public final static IdentValue SMALL = addValue("small");
     public final static IdentValue SMALLER = addValue("smaller");
-    public final static IdentValue START = addValue("start");
     public final static IdentValue SW_RESIZE = addValue("sw-resize");
     public final static IdentValue TEXT = addValue("text");
     public final static IdentValue W_RESIZE = addValue("w-resize");
@@ -263,11 +258,11 @@ public class IdentValue implements FSDerivedValue {
     public static boolean looksLikeIdent(String ident) {
         return (IdentValue) ALL_IDENT_VALUES.get(ident) != null;
     }
-
+    
     public static IdentValue valueOf(String ident) {
         return (IdentValue)ALL_IDENT_VALUES.get(ident);
-    }
-
+    }    
+    
     public static int getIdentCount() {
         return ALL_IDENT_VALUES.size();
     }
@@ -287,7 +282,7 @@ public class IdentValue implements FSDerivedValue {
         return val;
     }
 
-    /*
+    /* 
      * METHODS USED TO SUPPORT IdentValue as an FSDerivedValue, used in CalculatedStyle.
      * Most of these throw exceptions--makes use of the interface easier in CS (avoids casting)
      */
@@ -304,7 +299,7 @@ public class IdentValue implements FSDerivedValue {
         throw new XRRuntimeException("Ident value is never a float; wrong class used for derived value.");
     }
 
-    public FSColor asColor() {
+    public Color asColor() {
         throw new XRRuntimeException("Ident value is never a color; wrong class used for derived value.");
     }
 
@@ -335,42 +330,16 @@ public class IdentValue implements FSDerivedValue {
     public boolean isIdent() {
         return true;
     }
-
+    
     public boolean isDependentOnFontSize() {
         return false;
     }
 }
 
 /*
- * $Id$
+ * $Id: IdentValue.java,v 1.31 2007-05-20 23:25:32 peterbrant Exp $
  *
- * $Log$
- * Revision 1.35  2008/12/14 13:53:31  peterbrant
- * Implement -fs-keep-with-inline: keep property that instructs FS to try to avoid breaking a box so that only borders and padding appear on a page
- *
- * Revision 1.34  2008/07/27 00:21:46  peterbrant
- * Implement CMYK color support for PDF output, starting with patch from Mykola Gurov / Banish java.awt.Color from FS core layout classes
- *
- * Revision 1.33  2007/10/31 23:14:41  peterbrant
- * Add rudimentary support for @font-face rules
- *
- * Revision 1.32  2007/08/19 22:22:51  peterbrant
- * Merge R8pbrant changes to HEAD
- *
- * Revision 1.31.2.3  2007/08/15 21:29:31  peterbrant
- * Initial draft of support for running headers and footers on tables
- *
- * Revision 1.31.2.2  2007/08/08 21:44:09  peterbrant
- * Implement more flexible page numbering
- *
- * Revision 1.31.2.1  2007/06/30 00:25:29  peterbrant
- * Remove obsolete comments (pre-line and pre-wrap are part of CSS21)
- *
- * Revision 1.31  2007/05/20 23:25:32  peterbrant
- * Various code cleanups (e.g. remove unused imports)
- *
- * Patch from Sean Bright
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.30  2007/03/08 01:43:47  peterbrant
  * Don't cache rectangles with em or ex dimensions.  They aren't constant (even ignoring DPI related issues)
  *

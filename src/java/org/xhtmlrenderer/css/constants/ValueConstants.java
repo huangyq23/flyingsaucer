@@ -355,12 +355,9 @@ public final class ValueConstants {
 }// end class
 
 /*
- * $Id$
+ * $Id: ValueConstants.java,v 1.10 2005-10-25 16:06:49 pdoubleya Exp $
  *
- * $Log$
- * Revision 1.10  2005/10/25 16:06:49  pdoubleya
- * For guessing type, with no type code, check last char, not first.
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.9  2005/10/25 15:38:27  pdoubleya
  * Moved guessType() to ValueConstants, applied fix to method suggested by Chris Oliver, to avoid exception-based catch.
  *

@@ -27,7 +27,6 @@ import org.w3c.dom.Document;
 import org.xhtmlrenderer.extend.UserAgentCallback;
 import org.xhtmlrenderer.layout.SharedContext;
 import org.xhtmlrenderer.render.RenderingContext;
-import org.xhtmlrenderer.simple.extend.FormSubmissionListener;
 import org.xhtmlrenderer.simple.extend.XhtmlNamespaceHandler;
 import org.xhtmlrenderer.swing.BasicPanel;
 import org.xhtmlrenderer.swing.CursorListener;
@@ -127,11 +126,6 @@ public class XHTMLPanel extends BasicPanel {
             addMouseTrackingListener(new HoverListener());
             addMouseTrackingListener(new LinkListener());
             addMouseTrackingListener(new CursorListener());
-            setFormSubmissionListener(new FormSubmissionListener() {
-                public void submit(String query) {
-                    XHTMLPanel.this.setDocumentRelative(query);
-                }
-            });
         }
     }
 
@@ -146,7 +140,7 @@ public class XHTMLPanel extends BasicPanel {
      */
     public void relayout() {
         sharedContext.flushFonts();
-        super.relayout();
+        relayout(null);
     }
 
     /**
@@ -178,7 +172,7 @@ public class XHTMLPanel extends BasicPanel {
      */
     public void setDocument(Document doc, String url) {
         resetListeners();
-        setDocument(doc, url, new XhtmlNamespaceHandler());
+        super.setDocument(doc, url, new XhtmlNamespaceHandler());
     }
 
     /**
@@ -192,7 +186,7 @@ public class XHTMLPanel extends BasicPanel {
     public void setDocument(InputStream stream, String url)
             throws Exception {
         resetListeners();
-        setDocument(stream, url, new XhtmlNamespaceHandler());
+        super.setDocument(stream, url, new XhtmlNamespaceHandler());
     }
 
     /**
@@ -206,7 +200,7 @@ public class XHTMLPanel extends BasicPanel {
     public void setDocument(File file)
             throws Exception {
         resetListeners();
-        File parent = file.getAbsoluteFile().getParentFile();
+        File parent = file.getParentFile();
         String parentURL = ( parent == null ? "" : parent.toURI().toURL().toExternalForm());
         setDocument(
                 loadDocument(file.toURI().toURL().toExternalForm()),
@@ -258,7 +252,8 @@ public class XHTMLPanel extends BasicPanel {
     public void resetFontSize() {
         SharedContext rc = getSharedContext();
         rc.getTextRenderer().setFontScale(1.0F);
-        setDocument(getDocument());
+        relayout();
+        repaint();
     }
 
     /**
@@ -317,21 +312,9 @@ public class XHTMLPanel extends BasicPanel {
 }
 
 /*
- * $Id$
+ * $Id: XHTMLPanel.java,v 1.42 2007-06-29 06:05:48 pdoubleya Exp $
  *
- * $Log$
- * Revision 1.45  2009/02/15 17:17:24  pdoubleya
- * Support for callback on form submission using new FormSubmissionListener interface; patch from Christophe Marchand (thanks, Christophe!).
- *
- * Revision 1.44  2008/05/30 16:07:06  pdoubleya
- * Issue 228: when setting document from a file, use file.getAbsoluteFile().getParentFile() to find the parent, in case the file provided has no directory or path; otherwise, file.getParentFile() returns null, and we have no way of determining a base URI. Covers at least the (reproducible) part of the issue.
- *
- * Revision 1.43  2008/01/22 21:27:06  pdoubleya
- * Fix on resetting font scaling factor--was using old relayout/repaint approach, which isn't consistent--easier to use setDocument(), which in any case uses the DOM already in memory.
- *
- * Revision 1.42  2007/06/29 06:05:48  pdoubleya
- * As of R7, a change to layout (like changing font size) requires a call to setDocument().
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.41  2007/05/24 19:56:51  peterbrant
  * Add support for cursor property (predefined cursors only)
  *

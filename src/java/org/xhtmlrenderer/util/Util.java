@@ -326,24 +326,19 @@ public class Util {
      */
     public static void string_to_file(String text, File file)
             throws IOException {
-        FileWriter writer = null;
-        writer = new FileWriter(file);
-        try {
-            StringReader reader = new StringReader(text);
-            char[] buf = new char[1000];
-            while (true) {
-                int n = reader.read(buf, 0, 1000);
-                if (n == -1) {
-                    break;
-                }
-                writer.write(buf, 0, n);
+        FileWriter writer = new FileWriter(file);
+        StringReader reader = new StringReader(text);
+        char[] buf = new char[1000];
+        while (true) {
+            int n = reader.read(buf, 0, 1000);
+            if (n == -1) {
+                break;
             }
-            writer.flush();
-        } finally {
-            if (writer != null) {
-                writer.close();
-            }
+            writer.write(buf, 0, n);
         }
+        writer.flush();
+        writer.close();
+        //return writer.toString();
     }
 
     /**
@@ -415,31 +410,18 @@ public class Util {
      * @throws IOException           Throws
      */
     public static String file_to_string(File file)
-            throws IOException {
-        FileReader reader = null;
-        StringWriter writer = null;
-        String str;
-        try {
-            reader = new FileReader(file);
-            writer = new StringWriter();
-            char[] buf = new char[1000];
-            while (true) {
-                int n = reader.read(buf, 0, 1000);
-                if (n == -1) {
-                    break;
-                }
-                writer.write(buf, 0, n);
+            throws FileNotFoundException, IOException {
+        FileReader reader = new FileReader(file);
+        StringWriter writer = new StringWriter();
+        char[] buf = new char[1000];
+        while (true) {
+            int n = reader.read(buf, 0, 1000);
+            if (n == -1) {
+                break;
             }
-            str = writer.toString();
-        } finally {
-            if (reader != null) {
-                reader.close();
-            }
-            if (writer != null) {
-                writer.close();
-            }
+            writer.write(buf, 0, n);
         }
-        return str;
+        return writer.toString();
     }
 
     /**
@@ -587,38 +569,12 @@ public class Util {
         }
     }
 
-    public static boolean isNullOrEmpty(String str) {
-        return str == null || str.length() == 0;
-    }
-
-    public static boolean isNullOrEmpty(String str, boolean trim) {
-        return str == null || str.length() == 0 || (trim && str.trim().length() == 0);
-    }
-
-    public static boolean isEqual(String str1, String str2) {
-        return str1 == str2 || (str1 != null && str1.equals(str2));
-    }
-
-    public static boolean isEqual(String str1, String str2, boolean ignoreCase) {
-        return str1 == str2 || (str1 != null && (ignoreCase ? str1.equalsIgnoreCase(str2) : str1.equals(str2)));
-    }
 }
 
 /*
- * $Id$
+ * $Id: Util.java,v 1.6 2007-05-20 23:25:31 peterbrant Exp $
  *
- * $Log$
- * Revision 1.8  2009/05/09 15:16:43  pdoubleya
- * FindBugs: proper disposal of IO resources
- *
- * Revision 1.7  2009/04/25 11:19:07  pdoubleya
- * Add utility methods to compare strings, patch from Peter Fassev in issue #263.
- *
- * Revision 1.6  2007/05/20 23:25:31  peterbrant
- * Various code cleanups (e.g. remove unused imports)
- *
- * Patch from Sean Bright
- *
+ * $Log: not supported by cvs2svn $
  * Revision 1.5  2005/01/29 20:18:38  pdoubleya
  * Clean/reformat code. Removed commented blocks, checked copyright.
  *

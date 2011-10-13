@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Torbjorn Gannholm
+ * Copyright (c) 2005 Torbj�rn Gannholm
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -33,7 +33,7 @@ import org.w3c.dom.Text;
 import org.xhtmlrenderer.css.extend.StylesheetFactory;
 import org.xhtmlrenderer.css.sheet.Stylesheet;
 import org.xhtmlrenderer.css.sheet.StylesheetInfo;
-import org.xhtmlrenderer.simple.NoNamespaceHandler;
+import org.xhtmlrenderer.swing.NoNamespaceHandler;
 import org.xhtmlrenderer.util.Configuration;
 import org.xhtmlrenderer.util.XRLog;
 
@@ -98,18 +98,11 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
         }
         return true;
     }
-
-    /**
-     * Looks for attribute named attrName on the element, and returns null if not
-     * found, or the attribute value, trimmed, if found.
-     * @param e element to test for the given attribute
-     * @param attrName name of the attribute to look for
-     * @return returns null if not
-     * found, or the attribute value, trimmed, if found
-     */
+    
     protected String getAttribute(Element e, String attrName) {
         String result = e.getAttribute(attrName);
-        return result.length() == 0 ? null : result.trim();
+        result = result.trim();
+        return result.length() == 0 ? null : result;
     }
 
     /**
@@ -193,8 +186,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
         StringBuffer result = new StringBuffer();
         Node current = element.getFirstChild();
         while (current != null) {
-            short nodeType = current.getNodeType();
-            if (nodeType == Node.TEXT_NODE || nodeType == Node.CDATA_SECTION_NODE) {
+            if (current.getNodeType() == Node.TEXT_NODE) {
                 Text t = (Text)current;
                 result.append(t.getData());
             }
@@ -225,13 +217,13 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
     }
 
     /**
-     * Returns the title of the document as located in the contents of /html/head/title, or "" if none could be found.
+     * Gets the documentTitle attribute of the XhtmlNamespaceHandler object
      *
-     * @param doc the document to search for a title
-     * @return The document's title, or "" if none found
+     * @param doc PARAM
+     * @return The documentTitle value
      */
     public String getDocumentTitle(org.w3c.dom.Document doc) {
-        String title = "";
+        String title = "TITLE UNKNOWN";
         
         Element html = doc.getDocumentElement();
         Element head = findFirstChild(html, "head");
@@ -279,7 +271,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
         
         String css = buf.toString().trim();
         if (css.length() > 0) {
-            info.setContent(css);
+            info.setContent(css.toString());
             
             return info;
         } else {
@@ -288,7 +280,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
     }
     
     protected StylesheetInfo readLinkElement(Element link) {
-        String rel = link.getAttribute("rel").toLowerCase();
+        String rel = link.getAttribute("rel");
         if (rel.indexOf("alternate") != -1) {
             return null;
         }//DON'T get alternate stylesheets
@@ -313,8 +305,8 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
         info.setUri(link.getAttribute("href"));
         String media = link.getAttribute("media");
         if ("".equals(media)) {
-            media = "all";
-        }
+            media = "screen";
+        }//the default in HTML
         info.setMedia(media);
         
         String title = link.getAttribute("title");
@@ -343,14 +335,9 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
                 if (current.getNodeType() == Node.ELEMENT_NODE) {
                     Element elem = (Element)current;
                     StylesheetInfo info = null;
-                    String elemName = elem.getLocalName();
-                    if (elemName == null)
-                    {
-                        elemName = elem.getTagName();
-                    }
-                    if (elemName.equals("link")) {
+                    if (elem.getTagName().equals("link")) {
                         info = readLinkElement(elem);
-                    } else if (elemName.equals("style")) {
+                    } else if (elem.getTagName().equals("style")) {
                         info = readStyleElement(elem);
                     }
                     if (info != null) {
@@ -414,14 +401,21 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
 
     private InputStream getDefaultStylesheetStream() {
         InputStream stream = null;
-        String defaultStyleSheet = Configuration.valueFor("xr.css.user-agent-default-css") + "XhtmlNamespaceHandler.css";
-        stream = XhtmlCssOnlyNamespaceHandler.class.getResourceAsStream(defaultStyleSheet);
-        if (stream == null) {
-            XRLog.exception("Can't load default CSS from " + defaultStyleSheet + "." +
-                    "This file must be on your CLASSPATH. Please check before continuing.");
+        try {
+            String defaultStyleSheet = Configuration.valueFor("xr.css.user-agent-default-css") + "XhtmlNamespaceHandler.css";
+            if (this.getClass().getResourceAsStream(defaultStyleSheet) != null) {
+                stream = this.getClass().getResource(defaultStyleSheet).openStream();
+            } else {
+                XRLog.exception("Can't load default CSS from " + defaultStyleSheet + "." +
+                        "This file must be on your CLASSPATH. Please check before continuing.");
+                _defaultStylesheetError = true;
+            }
+
+        } catch (java.io.IOException ex) {
+            XRLog.exception("Bad IO", ex);
             _defaultStylesheetError = true;
         }
-        
+
         return stream;
     }
 }

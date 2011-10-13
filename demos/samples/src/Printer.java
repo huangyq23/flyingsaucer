@@ -1,28 +1,12 @@
-/*
- * Copyright (c) 2007 Patrick Wright
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * as published by the Free Software Foundation; either version 2.1
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
-
-
-import org.xhtmlrenderer.event.DocumentListener;
-import org.xhtmlrenderer.extend.UserAgentCallback;
-import org.xhtmlrenderer.layout.SharedContext;
-import org.xhtmlrenderer.swing.Java2DRenderer;
-import org.xhtmlrenderer.swing.NaiveUserAgent;
-
+import java.awt.*;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.awt.print.PrinterException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 import javax.print.*;
 import javax.print.attribute.Attribute;
 import javax.print.attribute.HashPrintRequestAttributeSet;
@@ -33,14 +17,14 @@ import javax.print.attribute.standard.OrientationRequested;
 import javax.print.attribute.standard.PrintQuality;
 import javax.print.event.PrintJobEvent;
 import javax.print.event.PrintJobListener;
-import java.awt.*;
-import java.awt.print.PageFormat;
-import java.awt.print.Printable;
-import java.awt.print.PrinterException;
-import java.io.File;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xhtmlrenderer.event.DocumentListener;
+import org.xhtmlrenderer.extend.TextRenderer;
+import org.xhtmlrenderer.layout.SharedContext;
+import org.xhtmlrenderer.simple.Graphics2DRenderer;
+import org.xhtmlrenderer.swing.Java2DRenderer;
 
 
 /**
@@ -49,7 +33,13 @@ import java.util.logging.Logger;
  * @author rk
  */
 public class Printer implements Runnable, DocumentListener, Printable, PrintJobListener {
-    private final static String template = "printingtemplate.xhtml";
+
+    /**
+     *
+     */
+    private static final long serialVersionUID = 6115417677320950273L;
+
+    private final String template = "printingtemplate.xhtml";
 
     /**
      * the base directory of the templates
@@ -67,12 +57,25 @@ public class Printer implements Runnable, DocumentListener, Printable, PrintJobL
     private Thread runner;
 
     /**
+     * the xhtml element dom tree
+     */
+    private Document doc;
+
+    /**
+     * the print job to be printed
+     */
+    private DocPrintJob job;
+
+    /**
      * the renderer used to render the xhtml dom tree into the page
      */
     private Java2DRenderer j2dr;
 
+    /**
+     * initialization values of the Renderer
+     */
+    private SharedContext ctx;
     private final File file;
-    private UserAgentCallback uac;
 
     /**
      * the constructor of the cameventprinter: starts logging and starts the
@@ -87,7 +90,6 @@ public class Printer implements Runnable, DocumentListener, Printable, PrintJobL
         base = System.getProperty("user.dir") + File.separator + "config"
                 + File.separator + "template" + File.separator;
 
-        uac = new NaiveUserAgent();
         // </snip>
 
         log.info("template printing");
@@ -113,12 +115,14 @@ public class Printer implements Runnable, DocumentListener, Printable, PrintJobL
         try {
             if (file.exists()) {
                 // load the xml template here
+                FileInputStream xmldoc = new FileInputStream(file);
                 log.info("loading template from: " + file.getName());
                 /* FIXME
                 DOMParser parser = new DOMParser();
                 parser.parse(xmldoc);
                 doc = parser.getDocument();
                 */
+                Element e = doc.getDocumentElement();
 
                 // show the document in the log for debugging purpose
                 log.fine("--------------------------------");
@@ -142,7 +146,7 @@ public class Printer implements Runnable, DocumentListener, Printable, PrintJobL
 
                 if (service != null) {
                     log.info("printer selected : " + service.getName());
-                    DocPrintJob job = service.createPrintJob();
+                    job = service.createPrintJob();
                     job.addPrintJobListener(this);
                     PrintJobAttributeSet atts = job.getAttributes();
                     Attribute[] arr = atts.toArray();
@@ -151,7 +155,7 @@ public class Printer implements Runnable, DocumentListener, Printable, PrintJobL
                     }
 
                     Doc sdoc = new SimpleDoc(this, flavor, null);
-                    SharedContext ctx = new SharedContext(uac);
+                    ctx = null; // new SharedContext(this);
                     ctx.setBaseURL(base);
 
                     // print the doc as specified
@@ -215,6 +219,9 @@ public class Printer implements Runnable, DocumentListener, Printable, PrintJobL
         log.info("print");
 
         try {
+
+            Graphics2D g2 = (Graphics2D) graphics;
+
             if (j2dr == null) {
 
                 j2dr = new Java2DRenderer(file, 1024);
@@ -224,8 +231,25 @@ public class Printer implements Runnable, DocumentListener, Printable, PrintJobL
                 context.setDPI(72f);
 
                 context.getTextRenderer().setSmoothingThreshold(0);
+                context.getTextRenderer().setSmoothingLevel(TextRenderer.HIGH);
 
+                /* FIXME
+                j2dr.setDocument(doc, base);
+
+                j2dr.layout(g2, null);
+                j2dr.getPanel().assignPagePrintPositions(g2);
+                log.info("minimum required width: "
+                        + j2dr.getMinimumSize().width);
+                 */
             }
+
+            /* FIXME
+            if (pi >= j2dr.getPanel().getRootLayer().getPages().size()) {
+                return Printable.NO_SUCH_PAGE;
+            }
+
+            // render the document
+            j2dr.getPanel().paintPage(g2, pi);*/
 
             return Printable.PAGE_EXISTS;
         } catch (Exception ex) {

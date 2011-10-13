@@ -1,22 +1,8 @@
 
 <project name="build.demo-apps">
-    <import file="properties.xml" />
     <!-- Builds and jars the browser demo, and runs it -->
 	<target name="browser" depends="jar.browser">
 		<java classname="org.xhtmlrenderer.demo.browser.BrowserStartup"
-				fork="${java-exec.fork.tests}">
-			<classpath refid="libraries-and-dest.all"/>
-			<sysproperty key="show-config" value="${show-config}"/>
-			<syspropertyset>
-				<propertyref prefix="xr."/>
-			</syspropertyset>
-			<sysproperty key="sun.java2D.opengl" value="True"/>
-			<sysproperty key="java.protocol.handler.pkgs" value="org.xhtmlrenderer.protocols"/>
-		</java>
-	</target>
-
-	<target name="browser-ws" depends="jar.browser">
-		<java classname="org.xhtmlrenderer.demo.browser.swing.BrowserSandboxLauncher"
 				fork="${java-exec.fork.tests}">
 			<classpath refid="libraries-and-dest.all"/>
 			<sysproperty key="show-config" value="${show-config}"/>
@@ -27,34 +13,15 @@
 		</java>
 	</target>
 
-    <!-- hack: for os x and swt, need vm parameter startOnFirstThread. not sure how to make this conditional
-    within Ant; if you figure out a way, please merge these SWT targets into one browser-swt -->
-    <target name="browser-swt" depends="browser-swt-not-osx,browser-swt-osx" />
-	
-	<target name="browser-swt-not-osx" depends="jar.browser" unless="isMac">
-		<echo message="Please make sure you have the swt.jar corresponding to your platform in the lib directory."/>
-		<java classname="org.xhtmlrenderer.demo.browser.swt.BrowserStartup"
+	<target name="browser-ws" depends="jar.browser">
+		<java classname="org.xhtmlrenderer.demo.browser.BrowserSandboxLauncher"
 				fork="${java-exec.fork.tests}">
 			<classpath refid="libraries-and-dest.all"/>
 			<sysproperty key="show-config" value="${show-config}"/>
 			<syspropertyset>
 				<propertyref prefix="xr."/>
 			</syspropertyset>
-			<sysproperty key="java.protocol.handler.pkgs" value="org.xhtmlrenderer.protocols"/>
-		</java>
-	</target>
-    
-	<target name="browser-swt-osx" depends="jar.browser" if="isMac">
-		<echo message="Please make sure you have the swt.jar corresponding to your platform in the lib directory."/>
-		<java classname="org.xhtmlrenderer.demo.browser.swt.BrowserStartup"
-				fork="${java-exec.fork.tests}">
-			<classpath refid="libraries-and-dest.all"/>
-			<sysproperty key="show-config" value="${show-config}"/>
-			<syspropertyset>
-				<propertyref prefix="xr."/>
-			</syspropertyset>
-			<sysproperty key="java.protocol.handler.pkgs" value="org.xhtmlrenderer.protocols"/>
-            <jvmarg line="-XstartOnFirstThread" />
+			<sysproperty key="sun.java2D.opengl" value="true"/>
 		</java>
 	</target>
 
@@ -125,4 +92,28 @@
 			</syspropertyset>
 		</java>
 	</target>
+
+    <!-- Builds and jars the about box demo, and runs it -->
+	<target name="photogallery" depends="jar">
+		<java classname="org.xhtmlrenderer.demo.photogallery.PhotoGallery"
+				fork="${java-exec.fork.tests}">
+			<classpath refid="libraries-and-dest.all"/>
+			<sysproperty key="show-config" value="${show-config}"/>
+			<syspropertyset>
+				<propertyref prefix="xr."/>
+			</syspropertyset>
+		</java>
+	</target>
+
+	<target name="filebrowser" depends="jar.core, jar.filebrowser">
+		<java classname="org.xhtmlrenderer.demo.filebrowser.FileBrowser"
+				fork="${java-exec.fork.tests}">
+			<classpath refid="libraries-and-dest.all"/>
+			<sysproperty key="show-config" value="${show-config}"/>
+			<syspropertyset>
+				<propertyref prefix="xr."/>
+			</syspropertyset>
+		</java>
+	</target>
+
 </project>
