@@ -257,7 +257,17 @@ public class Layer {
     public Dimension getPaintingDimension(LayoutContext c) {
         return calcPaintingDimension(c).getOuterMarginCorner();
     }
-    
+
+    private boolean isLayerBelongsToPage (RenderingContext c) {
+        PageBox page = c.getPage();
+        Rectangle content = page.getPrintingClippingBounds(c);
+        int top = -page.getPaintingTop();
+
+        content.setLocation(0, -top);
+
+        return content.intersects(this.getMaster().getPaintingClipEdge(c));
+    }
+
     public void paint(RenderingContext c, int originX, int originY) {
         paint(c, originX, originY, false);
     }
@@ -267,11 +277,15 @@ public class Layer {
         if (! paintAlternateFlows && isAlternateFlow()) {
             return;
         }
-        
+
         if (getMaster().getStyle().isFixed()) {
             positionFixedLayer(c);
         }
-        
+
+        if(! isLayerBelongsToPage(c)){
+            return;
+        }
+
         if (isRootLayer()) {
             getMaster().paintRootElementBackground(c);
         }
@@ -343,7 +357,8 @@ public class Layer {
             result = find(cssCtx, absX, absY, getSortedLayers(ZERO));
             if (result != null) {
                 return result;
-            } 
+            }
+ 
             result = find(cssCtx, absX, absY, collectLayers(AUTO));
             if (result != null) {
                 return result;
